@@ -15,13 +15,15 @@ import Data.Tuple as Tuple
 -- Types
 
 data Module = Module
-  { name :: String
+  { name :: ModuleName
   , pscVersion :: String
   , exports :: Array String
-  , imports :: Array String
+  , imports :: Array ModuleName
   , foreignImports :: Array String
   , declarations :: Array Declaration
   }
+
+newtype ModuleName = ModuleName String
 
 data Declaration = Declaration
   { name :: String
@@ -96,12 +98,15 @@ compileModule (Module module_) = do
   String.joinWith ""
     [ "{-# LANGUAGE NoImplicitPrelude #-}\n"
     , "-- Built with psc version ", module_.pscVersion, ".\n"
-    , "module ", module_.name, "\n"
+    , "module ", compileModuleName module_.name, "\n"
     , "(", String.joinWith ", " exports, ")\n"
     , "where\n"
     , "import qualified Prelude\n"
     , String.joinWith "" declarations
     ]
+
+compileModuleName :: ModuleName -> String
+compileModuleName (ModuleName name) = name
 
 compileDeclaration :: Declaration -> String
 compileDeclaration (Declaration declaration) = do
@@ -177,7 +182,12 @@ instance decodeJsonModule :: Argonaut.DecodeJson Module where
     imports <- Argonaut.getField moduleObject "imports"
     foreignImports <- Argonaut.getField moduleObject "foreign"
     declarations <- Argonaut.getField moduleObject "decls"
-    Either.Right (Module { name, pscVersion, exports, imports, foreignImports, declarations })
+    Either.Right (Module { name: ModuleName name, pscVersion, exports, imports, foreignImports, declarations })
+
+instance decodeJsonModuleName :: Argonaut.DecodeJson ModuleName where
+  decodeJson json = do
+    name <- toEither "module name not string" (Argonaut.toString json)
+    Either.Right (ModuleName name)
 
 instance decodeJsonDeclaration :: Argonaut.DecodeJson Declaration where
   decodeJson json = do
