@@ -8,6 +8,7 @@ module.exports = {
   emptyCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":[],"decls":[],"foreign":[]}},
   functionCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["identity"],"decls":[{"identity":["Abs","x",["Var","x"]]}],"foreign":[]}},
   integerCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["int"],"decls":[{"int":["Literal",["IntLiteral",0]]}],"foreign":[]}},
+  letCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["f"],"decls":[{"f":["Abs","x",["Let",[{"y":["Var","x"]}],["Var","y"]]]}],"foreign":[]}},
   multipleCaseCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["f"],"decls":[{"f":["Abs","x",["Case",[["Var","x"],["Var","x"]],[[[["VarBinder","y"],["VarBinder","z"]],["Var","x"]]]]]}],"foreign":[]}},
   nullCaseCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["f"],"decls":[{"f":["Abs","x",["Case",[["Var","x"]],[[["NullBinder"],["Var","x"]]]]]}],"foreign":[]}},
   numberCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["number"],"decls":[{"number":["Literal",["NumberLiteral",0]]}],"foreign":[]}},

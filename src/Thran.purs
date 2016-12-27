@@ -45,6 +45,10 @@ data Expression
     { name :: Identifier
     , body :: Expression
     }
+  | LetExpression
+    { binds :: Array (StrMap.StrMap Expression)
+    , body :: Expression
+    }
   | LiteralExpression
     { literal :: Literal
     }
@@ -136,8 +140,23 @@ compileExpression expression = case expression of
     let compiledName = compileIdentifier name
     let compiledBody = compileExpression body
     String.joinWith "" ["(\\ ", compiledName, " -> ", compiledBody, ")"]
+  LetExpression { binds, body } -> do
+    let compiledBinds = map compileBinds binds
+    let compiledBody = compileExpression body
+    String.joinWith ""
+      [ "(let { "
+      , String.joinWith "; " compiledBinds
+      , " } in "
+      , compiledBody
+      , ")"
+      ]
   LiteralExpression { literal } -> compileLiteral literal
   VariableExpression { name } -> compileIdentifier name
+
+compileBinds :: StrMap.StrMap Expression -> String
+compileBinds binds = do
+  let compiledBinds = StrMap.foldMap (\ name expression -> [String.joinWith "" [name, " = ", compileExpression expression]]) binds
+  String.joinWith "; " compiledBinds
 
 compileAlternative :: Alternative -> String
 compileAlternative (Alternative alternative) = do
@@ -212,6 +231,7 @@ instance decodeJsonExpression :: Argonaut.DecodeJson Expression where
       "Abs" -> decodeFunctionExpression tail
       "App" -> decodeApplicationExpression tail
       "Case" -> decodeCaseExpression tail
+      "Let" -> decodeLetExpression tail
       "Literal" -> decodeLiteralExpression tail
       "Var" -> decodeVariableExpression tail
       _ -> Either.Left "unknown expression"
@@ -242,6 +262,15 @@ decodeFunctionExpression array = do
     [element] -> Argonaut.decodeJson element
     _ -> Either.Left "invalid function body"
   Either.Right (FunctionExpression { name: Identifier name, body })
+
+decodeLetExpression :: Array Argonaut.Json -> Either.Either String Expression
+decodeLetExpression array = do
+  case array of
+    [first, second] -> do
+      binds <- Argonaut.decodeJson first
+      body <- Argonaut.decodeJson second
+      Either.Right (LetExpression { binds, body })
+    _ -> Either.Left (show array)
 
 decodeLiteralExpression :: Array Argonaut.Json -> Either.Either String Expression
 decodeLiteralExpression array = do

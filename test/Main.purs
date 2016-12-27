@@ -23,6 +23,7 @@ foreign import conditionalCoreFn :: Argonaut.Json
 foreign import emptyCoreFn :: Argonaut.Json
 foreign import functionCoreFn :: Argonaut.Json
 foreign import integerCoreFn :: Argonaut.Json
+foreign import letCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
@@ -177,4 +178,15 @@ import qualified Prelude
 f = (\ x -> (case (x) of { (_) -> x }))
 """
         let actual = Thran.compile nullCaseCoreFn
+        Assert.equal expected actual
+      Test.test "let expression" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
+module M
+(f)
+where
+import qualified Prelude
+f = (\ x -> (let { y = x } in y))
+"""
+        let actual = Thran.compile letCoreFn
         Assert.equal expected actual

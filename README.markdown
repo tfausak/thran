@@ -17,9 +17,11 @@ For example, given the following PureScript module:
 
 ``` purescript
 module Example where
+were x = y where y = x
 string = "thran"
 number = 1.2
 not x = if x then false else true
+letter x = let y = x in y
 integer = 7
 identity x = x
 character = 't'
@@ -36,12 +38,14 @@ Thran generates this Haskell module:
 {-# LANGUAGE NoImplicitPrelude #-}
 -- Built with psc version 0.10.3.
 module Example
-(apply, array, boolean, case_, character, identity, integer, not, number, string)
+(apply, array, boolean, case_, character, identity, integer, letter, not, number, string, were)
 where
 import qualified Prelude
+were = (\ x -> (let { y = x } in y))
 string = "thran"
 number = 1.2
 not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))
+letter = (\ x -> (let { y = x } in y))
 integer = 7
 identity = (\ x -> x)
 character = 't'
@@ -57,7 +61,8 @@ So far, Thran supports:
 - Module export lists
 - Top-level non-recursive declarations
 - Array, boolean, character, function, integer, number, and string literals
-- Case expressions, including `if _ then _ else _`
+- Case expressions (`case _ of _`), including `if _ then _ else _`
+- Let expressions (`let _ in _`), including `_ where _`
 
 Currently Thran does not support:
 
