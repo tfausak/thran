@@ -22,8 +22,10 @@ foreign import characterCoreFn :: Argonaut.Json
 foreign import conditionalCoreFn :: Argonaut.Json
 foreign import emptyCoreFn :: Argonaut.Json
 foreign import functionCoreFn :: Argonaut.Json
+foreign import identifierCoreFn :: Argonaut.Json
 foreign import integerCoreFn :: Argonaut.Json
 foreign import letCoreFn :: Argonaut.Json
+foreign import moduleNameCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
@@ -189,4 +191,26 @@ import qualified Prelude
 f = (\ x -> (let { y = x } in y))
 """
         let actual = Thran.compile letCoreFn
+        Assert.equal expected actual
+      Test.test "intra-module identifier reference" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
+module M
+(f, g)
+where
+import qualified Prelude
+f = (\ x -> x)
+g = M.f
+"""
+        let actual = Thran.compile identifierCoreFn
+        Assert.equal expected actual
+      Test.test "interesting module name" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
+module Aa1.Bb1
+()
+where
+import qualified Prelude
+"""
+        let actual = Thran.compile moduleNameCoreFn
         Assert.equal expected actual
