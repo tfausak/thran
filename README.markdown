@@ -3,6 +3,8 @@
 Thran compiles PureScript into Haskell.
 It is written in PureScript.
 
+[![Thran Golem](https://i.imgur.com/iwbcQjm.jpg)](http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=423539)
+
 To use Thran, first compile a PureScript module with `psc --dump-corefn`.
 Then convert the corefn into Haskell.
 
