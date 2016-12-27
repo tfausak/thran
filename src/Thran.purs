@@ -87,13 +87,13 @@ data Literal
 compile :: Argonaut.Json -> Either.Either String String
 compile json = do
   module_ <- Argonaut.decodeJson json
-  compileModule module_
+  Either.Right (compileModule module_)
 
-compileModule :: Module -> Either.Either String String
+compileModule :: Module -> String
 compileModule (Module module_) = do
-  exports <- Traversable.traverse compileIdentifier module_.exports
-  declarations <- Traversable.traverse compileDeclaration module_.declarations
-  Either.Right (String.joinWith ""
+  let exports = map compileIdentifier module_.exports
+  let declarations = map compileDeclaration module_.declarations
+  String.joinWith ""
     [ "{-# LANGUAGE NoImplicitPrelude #-}\n"
     , "-- Built with psc version ", module_.pscVersion, ".\n"
     , "module ", module_.name, "\n"
@@ -101,69 +101,69 @@ compileModule (Module module_) = do
     , "where\n"
     , "import qualified Prelude\n"
     , String.joinWith "" declarations
-    ])
+    ]
 
-compileDeclaration :: Declaration -> Either.Either String String
+compileDeclaration :: Declaration -> String
 compileDeclaration (Declaration declaration) = do
-  name <- compileIdentifier declaration.name
-  expression <- compileExpression declaration.expression
-  Either.Right (String.joinWith "" [name, " = ", expression, "\n"])
+  let name = compileIdentifier declaration.name
+  let expression = compileExpression declaration.expression
+  String.joinWith "" [name, " = ", expression, "\n"]
 
-compileExpression :: Expression -> Either.Either String String
+compileExpression :: Expression -> String
 compileExpression expression = case expression of
   ApplicationExpression { left, right } -> do
-    compiledLeft <- compileExpression left
-    compiledRight <- compileExpression right
-    Either.Right (String.joinWith "" ["(", compiledLeft, " ", compiledRight, ")"])
+    let compiledLeft = compileExpression left
+    let compiledRight = compileExpression right
+    String.joinWith "" ["(", compiledLeft, " ", compiledRight, ")"]
   CaseExpression { expressions, alternatives } -> do
-    compiledExpressions <- Traversable.traverse compileExpression expressions
-    compiledAlternatives <- Traversable.traverse compileAlternative alternatives
-    Either.Right (String.joinWith ""
+    let compiledExpressions = map compileExpression expressions
+    let compiledAlternatives = map compileAlternative alternatives
+    String.joinWith ""
       [ "(case ("
       , String.joinWith ", " compiledExpressions
       , ") of { "
       , String.joinWith "; " compiledAlternatives
       , " })"
-      ])
+      ]
   FunctionExpression { name, body } -> do
-    compiledName <- compileIdentifier name
-    compiledBody <- compileExpression body
-    Either.Right (String.joinWith "" ["(\\ ", compiledName, " -> ", compiledBody, ")"])
+    let compiledName = compileIdentifier name
+    let compiledBody = compileExpression body
+    String.joinWith "" ["(\\ ", compiledName, " -> ", compiledBody, ")"]
   LiteralExpression { literal } -> compileLiteral literal
   VariableExpression { name } -> compileIdentifier name
 
-compileAlternative :: Alternative -> Either.Either String String
+compileAlternative :: Alternative -> String
 compileAlternative (Alternative alternative) = do
-  compiledBinders <- Traversable.traverse compileBinder alternative.binders
-  compiledBody <- compileExpression alternative.body
-  Either.Right (String.joinWith ""
+  let compiledBinders = map compileBinder alternative.binders
+  let compiledBody = compileExpression alternative.body
+  String.joinWith ""
     [ "("
     , String.joinWith ", " compiledBinders
     , ") -> "
     , compiledBody
-    ])
+    ]
 
-compileBinder :: Binder -> Either.Either String String
+compileBinder :: Binder -> String
 compileBinder binder = case binder of
   LiteralBinder { literal } -> compileLiteral literal
-  NullBinder -> Either.Right "_"
+  NullBinder -> "_"
   VariableBinder { name } -> compileIdentifier name
 
-compileLiteral :: Literal -> Either.Either String String
+compileLiteral :: Literal -> String
 compileLiteral literal = case literal of
   ArrayLiteral { value } -> do
-    elements <- Traversable.traverse compileExpression value
-    Either.Right (String.joinWith "" ["[", String.joinWith ", " elements, "]"])
+    let elements = map compileExpression value
+    String.joinWith "" ["[", String.joinWith ", " elements, "]"]
   BooleanLiteral { value } -> case value of
-    false -> Either.Right "Prelude.False"
-    true -> Either.Right "Prelude.True"
-  CharLiteral { value } -> Either.Right (show value)
-  IntegerLiteral { value } -> Either.Right (show value)
-  NumberLiteral { value } -> Either.Right (show value)
-  StringLiteral { value } -> Either.Right (show value)
+    false -> "Prelude.False"
+    true -> "Prelude.True"
+  CharLiteral { value } -> show value
+  IntegerLiteral { value } -> show value
+  NumberLiteral { value } -> show value
+  StringLiteral { value } -> show value
 
-compileIdentifier :: String -> Either.Either String String
-compileIdentifier identifier = Either.Right identifier
+compileIdentifier :: String -> String
+compileIdentifier identifier = identifier
 
 -- JSON
 
