@@ -57,6 +57,7 @@ data Binder
   = LiteralBinder
     { literal :: Literal
     }
+  | NullBinder
   | VariableBinder
     { name :: String
     }
@@ -145,6 +146,7 @@ compileAlternative (Alternative alternative) = do
 compileBinder :: Binder -> Either.Either String String
 compileBinder binder = case binder of
   LiteralBinder { literal } -> compileLiteral literal
+  NullBinder -> Either.Right "_"
   VariableBinder { name } -> compileIdentifier name
 
 compileLiteral :: Literal -> Either.Either String String
@@ -252,21 +254,26 @@ instance decodeJsonAlternative :: Argonaut.DecodeJson Alternative where
 
 instance decodeJsonBinder :: Argonaut.DecodeJson Binder where
   decodeJson json = do
-    array <- toEither "binder not array" (Argonaut.toArray json)
-    { head, tail } <- toEither "binder array empty" (Array.uncons array)
-    kind <- toEither "binder kind not string" (Argonaut.toString head)
-    case kind of
-      "LiteralBinder" -> case tail of
-        [element] -> do
-          literal <- Argonaut.decodeJson element
-          Either.Right (LiteralBinder { literal })
-        _ -> Either.Left "invalid literal binder"
-      "VarBinder" -> case tail of
-        [element] -> do
-          name <- toEither "variable binder name not string" (Argonaut.toString element)
-          Either.Right (VariableBinder { name })
-        _ -> Either.Left "invalid variable binder"
-      _ -> Either.Left "unknown binder"
+    case Argonaut.toString json of
+      Maybe.Just string -> case string of
+        "NullBinder" -> Either.Right NullBinder
+        _ -> Either.Left "unknown binder"
+      Maybe.Nothing -> do
+        array <- toEither "binder not array" (Argonaut.toArray json)
+        { head, tail } <- toEither "binder array empty" (Array.uncons array)
+        kind <- toEither "binder kind not string" (Argonaut.toString head)
+        case kind of
+          "LiteralBinder" -> case tail of
+            [element] -> do
+              literal <- Argonaut.decodeJson element
+              Either.Right (LiteralBinder { literal })
+            _ -> Either.Left "invalid literal binder"
+          "VarBinder" -> case tail of
+            [element] -> do
+              name <- toEither "variable binder name not string" (Argonaut.toString element)
+              Either.Right (VariableBinder { name })
+            _ -> Either.Left "invalid variable binder"
+          _ -> Either.Left "unknown binder"
 
 instance decodeJsonLiteral :: Argonaut.DecodeJson Literal where
   decodeJson json = do
