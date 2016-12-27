@@ -14,15 +14,17 @@ import Test.Unit.Assert as Assert
 import Test.Unit.Main as Main
 import Thran as Thran
 
+foreign import applicationCoreFn :: Argonaut.Json
+foreign import arrayCoreFn :: Argonaut.Json
+foreign import booleanCoreFn :: Argonaut.Json
+foreign import caseCoreFn :: Argonaut.Json
+foreign import characterCoreFn :: Argonaut.Json
+foreign import conditionalCoreFn :: Argonaut.Json
 foreign import emptyCoreFn :: Argonaut.Json
 foreign import functionCoreFn :: Argonaut.Json
-foreign import applicationCoreFn :: Argonaut.Json
-foreign import booleanCoreFn :: Argonaut.Json
-foreign import intCoreFn :: Argonaut.Json
+foreign import integerCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
-foreign import charCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
-foreign import arrayCoreFn :: Argonaut.Json
 
 main :: Eff.Eff
   ( console :: CONSOLE
@@ -33,82 +35,122 @@ main = Main.runTest do
   Test.suite "Thran" do
     Test.suite "compile" do
       Test.test "nothing" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 ()
 where
+import qualified Prelude
 """
         let actual = Thran.compile emptyCoreFn
         Assert.equal expected actual
-      Test.test "function" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+      Test.test "function declaration" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (identity)
 where
+import qualified Prelude
 identity = (\ x -> x)
 """
         let actual = Thran.compile functionCoreFn
         Assert.equal expected actual
       Test.test "function application" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (apply)
 where
+import qualified Prelude
 apply = (\ f -> (\ x -> (f x)))
 """
         let actual = Thran.compile applicationCoreFn
         Assert.equal expected actual
       Test.test "boolean literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (boolean)
 where
-boolean = False
+import qualified Prelude
+boolean = Prelude.False
 """
         let actual = Thran.compile booleanCoreFn
         Assert.equal expected actual
       Test.test "integer literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (int)
 where
+import qualified Prelude
 int = 0
 """
-        let actual = Thran.compile intCoreFn
+        let actual = Thran.compile integerCoreFn
         Assert.equal expected actual
       Test.test "number literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (number)
 where
+import qualified Prelude
 number = 0.0
 """
         let actual = Thran.compile numberCoreFn
         Assert.equal expected actual
       Test.test "character literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (char)
 where
+import qualified Prelude
 char = 'a'
 """
-        let actual = Thran.compile charCoreFn
+        let actual = Thran.compile characterCoreFn
         Assert.equal expected actual
       Test.test "string literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (string)
 where
+import qualified Prelude
 string = ""
 """
         let actual = Thran.compile stringCoreFn
         Assert.equal expected actual
       Test.test "array literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
 module M
 (array)
 where
+import qualified Prelude
 array = [0, 1]
 """
         let actual = Thran.compile arrayCoreFn
+        Assert.equal expected actual
+      Test.test "case expression" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
+module M
+(identity)
+where
+import qualified Prelude
+identity = (\ x -> (case (x) of { (y) -> y }))
+"""
+        let actual = Thran.compile caseCoreFn
+        Assert.equal expected actual
+      Test.test "conditional expression" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
+module M
+(not)
+where
+import qualified Prelude
+not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))
+"""
+        let actual = Thran.compile conditionalCoreFn
         Assert.equal expected actual

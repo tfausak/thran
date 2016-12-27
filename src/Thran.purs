@@ -33,6 +33,10 @@ data Expression
     { left :: Expression
     , right :: Expression
     }
+  | CaseExpression
+    { expressions :: Array Expression
+    , alternatives :: Array Alternative
+    }
   | FunctionExpression
     { name :: String
     , body :: Expression
@@ -41,6 +45,19 @@ data Expression
     { literal :: Literal
     }
   | VariableExpression
+    { name :: String
+    }
+
+data Alternative = Alternative
+  { binders :: Array Binder
+  , body :: Expression
+  }
+
+data Binder
+  = LiteralBinder
+    { literal :: Literal
+    }
+  | VariableBinder
     { name :: String
     }
 
@@ -76,11 +93,13 @@ compileModule (Module module_) = do
   exports <- Traversable.traverse compileIdentifier module_.exports
   declarations <- Traversable.traverse compileDeclaration module_.declarations
   Either.Right (String.joinWith ""
-    [ "-- Built with psc version ", module_.pscVersion, ".\n"
+    [ "{-# LANGUAGE NoImplicitPrelude #-}\n"
+    , "-- Built with psc version ", module_.pscVersion, ".\n"
     , "module ", module_.name, "\n"
     , "(", String.joinWith ", " exports, ")\n"
     , "where\n"
-    , String.joinWith "\n" declarations
+    , "import qualified Prelude\n"
+    , String.joinWith "" declarations
     ])
 
 compileDeclaration :: Declaration -> Either.Either String String
@@ -95,6 +114,16 @@ compileExpression expression = case expression of
     compiledLeft <- compileExpression left
     compiledRight <- compileExpression right
     Either.Right (String.joinWith "" ["(", compiledLeft, " ", compiledRight, ")"])
+  CaseExpression { expressions, alternatives } -> do
+    compiledExpressions <- Traversable.traverse compileExpression expressions
+    compiledAlternatives <- Traversable.traverse compileAlternative alternatives
+    Either.Right (String.joinWith ""
+      [ "(case ("
+      , String.joinWith ", " compiledExpressions
+      , ") of { "
+      , String.joinWith "; " compiledAlternatives
+      , " })"
+      ])
   FunctionExpression { name, body } -> do
     compiledName <- compileIdentifier name
     compiledBody <- compileExpression body
@@ -102,14 +131,30 @@ compileExpression expression = case expression of
   LiteralExpression { literal } -> compileLiteral literal
   VariableExpression { name } -> compileIdentifier name
 
+compileAlternative :: Alternative -> Either.Either String String
+compileAlternative (Alternative alternative) = do
+  compiledBinders <- Traversable.traverse compileBinder alternative.binders
+  compiledBody <- compileExpression alternative.body
+  Either.Right (String.joinWith ""
+    [ "("
+    , String.joinWith ", " compiledBinders
+    , ") -> "
+    , compiledBody
+    ])
+
+compileBinder :: Binder -> Either.Either String String
+compileBinder binder = case binder of
+  LiteralBinder { literal } -> compileLiteral literal
+  VariableBinder { name } -> compileIdentifier name
+
 compileLiteral :: Literal -> Either.Either String String
 compileLiteral literal = case literal of
   ArrayLiteral { value } -> do
     elements <- Traversable.traverse compileExpression value
     Either.Right (String.joinWith "" ["[", String.joinWith ", " elements, "]"])
   BooleanLiteral { value } -> case value of
-    false -> Either.Right "False"
-    true -> Either.Right "True"
+    false -> Either.Right "Prelude.False"
+    true -> Either.Right "Prelude.True"
   CharLiteral { value } -> Either.Right (show value)
   IntegerLiteral { value } -> Either.Right (show value)
   NumberLiteral { value } -> Either.Right (show value)
@@ -147,6 +192,7 @@ instance decodeJsonExpression :: Argonaut.DecodeJson Expression where
     case kind of
       "Abs" -> decodeFunctionExpression tail
       "App" -> decodeApplicationExpression tail
+      "Case" -> decodeCaseExpression tail
       "Literal" -> decodeLiteralExpression tail
       "Var" -> decodeVariableExpression tail
       _ -> Either.Left "unknown expression"
@@ -159,6 +205,15 @@ decodeApplicationExpression array = do
       right <- Argonaut.decodeJson second
       Either.Right (ApplicationExpression { left, right })
     _ -> Either.Left "invalid application"
+
+decodeCaseExpression :: Array Argonaut.Json -> Either.Either String Expression
+decodeCaseExpression array = do
+  case array of
+    [first, second] -> do
+      expressions <- Argonaut.decodeJson first
+      alternatives <- Argonaut.decodeJson second
+      Either.Right (CaseExpression { expressions, alternatives })
+    _ -> Either.Left "invalid case"
 
 decodeFunctionExpression :: Array Argonaut.Json -> Either.Either String Expression
 decodeFunctionExpression array = do
@@ -184,6 +239,34 @@ decodeVariableExpression array = do
       name <- toEither "variable name not string" (Argonaut.toString element)
       Either.Right (VariableExpression { name })
     _ -> Either.Left "invalid variable"
+
+instance decodeJsonAlternative :: Argonaut.DecodeJson Alternative where
+  decodeJson json = do
+    array <- toEither "alternative not array" (Argonaut.toArray json)
+    case array of
+      [first, second] -> do
+        binders <- Argonaut.decodeJson first
+        body <- Argonaut.decodeJson second
+        Either.Right (Alternative { binders, body })
+      _ -> Either.Left "invalid alternative"
+
+instance decodeJsonBinder :: Argonaut.DecodeJson Binder where
+  decodeJson json = do
+    array <- toEither "binder not array" (Argonaut.toArray json)
+    { head, tail } <- toEither "binder array empty" (Array.uncons array)
+    kind <- toEither "binder kind not string" (Argonaut.toString head)
+    case kind of
+      "LiteralBinder" -> case tail of
+        [element] -> do
+          literal <- Argonaut.decodeJson element
+          Either.Right (LiteralBinder { literal })
+        _ -> Either.Left "invalid literal binder"
+      "VarBinder" -> case tail of
+        [element] -> do
+          name <- toEither "variable binder name not string" (Argonaut.toString element)
+          Either.Right (VariableBinder { name })
+        _ -> Either.Left "invalid variable binder"
+      _ -> Either.Left "unknown binder"
 
 instance decodeJsonLiteral :: Argonaut.DecodeJson Literal where
   decodeJson json = do
