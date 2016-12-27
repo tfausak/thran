@@ -17,16 +17,18 @@ import Data.Tuple as Tuple
 data Module = Module
   { name :: ModuleName
   , pscVersion :: String
-  , exports :: Array String
+  , exports :: Array Identifier
   , imports :: Array ModuleName
-  , foreignImports :: Array String
+  , foreignImports :: Array Identifier
   , declarations :: Array Declaration
   }
 
 newtype ModuleName = ModuleName String
 
+newtype Identifier = Identifier String
+
 data Declaration = Declaration
-  { name :: String
+  { name :: Identifier
   , expression :: Expression
   }
 
@@ -40,14 +42,14 @@ data Expression
     , alternatives :: Array Alternative
     }
   | FunctionExpression
-    { name :: String
+    { name :: Identifier
     , body :: Expression
     }
   | LiteralExpression
     { literal :: Literal
     }
   | VariableExpression
-    { name :: String
+    { name :: Identifier
     }
 
 data Alternative = Alternative
@@ -61,7 +63,7 @@ data Binder
     }
   | NullBinder
   | VariableBinder
-    { name :: String
+    { name :: Identifier
     }
 
 data Literal
@@ -167,8 +169,8 @@ compileLiteral literal = case literal of
   NumberLiteral { value } -> show value
   StringLiteral { value } -> show value
 
-compileIdentifier :: String -> String
-compileIdentifier identifier = identifier
+compileIdentifier :: Identifier -> String
+compileIdentifier (Identifier name) = name
 
 -- JSON
 
@@ -189,12 +191,17 @@ instance decodeJsonModuleName :: Argonaut.DecodeJson ModuleName where
     name <- toEither "module name not string" (Argonaut.toString json)
     Either.Right (ModuleName name)
 
+instance decodeJsonIdentifier :: Argonaut.DecodeJson Identifier where
+  decodeJson json = do
+    name <- toEither "identifier not string" (Argonaut.toString json)
+    Either.Right (Identifier name)
+
 instance decodeJsonDeclaration :: Argonaut.DecodeJson Declaration where
   decodeJson json = do
     object <- toEither "declaration not object" (Argonaut.toObject json)
     Tuple.Tuple name expressionJson <- toEither "declaration object not singleton" (fromSingleton object)
     expression <- Argonaut.decodeJson expressionJson
-    Either.Right (Declaration { name, expression })
+    Either.Right (Declaration { name: Identifier name, expression })
 
 instance decodeJsonExpression :: Argonaut.DecodeJson Expression where
   decodeJson json = do
@@ -234,7 +241,7 @@ decodeFunctionExpression array = do
   body <- case tail of
     [element] -> Argonaut.decodeJson element
     _ -> Either.Left "invalid function body"
-  Either.Right (FunctionExpression { name, body })
+  Either.Right (FunctionExpression { name: Identifier name, body })
 
 decodeLiteralExpression :: Array Argonaut.Json -> Either.Either String Expression
 decodeLiteralExpression array = do
@@ -249,7 +256,7 @@ decodeVariableExpression array = do
   case array of
     [element] -> do
       name <- toEither "variable name not string" (Argonaut.toString element)
-      Either.Right (VariableExpression { name })
+      Either.Right (VariableExpression { name: Identifier name })
     _ -> Either.Left "invalid variable"
 
 instance decodeJsonAlternative :: Argonaut.DecodeJson Alternative where
@@ -281,7 +288,7 @@ instance decodeJsonBinder :: Argonaut.DecodeJson Binder where
           "VarBinder" -> case tail of
             [element] -> do
               name <- toEither "variable binder name not string" (Argonaut.toString element)
-              Either.Right (VariableBinder { name })
+              Either.Right (VariableBinder { name: Identifier name })
             _ -> Either.Left "invalid variable binder"
           _ -> Either.Left "unknown binder"
 
