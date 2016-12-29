@@ -38,8 +38,9 @@ Thran generates this Haskell module:
 {-# LANGUAGE NoImplicitPrelude #-}
 -- Built with psc version 0.10.3.
 module Example
-(apply, array, boolean, case_, character, identity, integer, letter, not, number, string, were)
+(apply, array, boolean, case_, character, empty, identity, integer, letter, not, number, string, were)
 where
+import qualified Bookkeeper
 import qualified Prelude
 were = (\ x -> (let { y = x } in y))
 string = "thran"
@@ -48,6 +49,7 @@ not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) ->
 letter = (\ x -> (let { y = x } in y))
 integer = 7
 identity = (\ x -> x)
+empty = Bookkeeper.emptyBook
 character = 't'
 case_ = (\ x -> (case (x) of { (y) -> y }))
 boolean = Prelude.True
@@ -65,10 +67,11 @@ So far, Thran supports:
 - Let expressions (`let _ in _`), including `_ where _`
 - Do notation, but you have to bring your own `bind`
 - Negative numbers, but you have to bring your own `negate`
+- Empty record literals (requires Bookkeeper)
 
 Currently Thran does not support:
 
-- Record literals
+- Non-empty record literals
 - Module imports
 - Foreign imports
 - Recursive declarations

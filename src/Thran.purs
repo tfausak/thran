@@ -86,6 +86,9 @@ data Literal
   | NumberLiteral
     { value :: Number
     }
+  | RecordLiteral
+    { value :: StrMap.StrMap Expression
+    }
   | StringLiteral
     { value :: String
     }
@@ -107,6 +110,7 @@ compileModule (Module module_) = do
     , "module ", compileModuleName module_.name, "\n"
     , "(", String.joinWith ", " exports, ")\n"
     , "where\n"
+    , "import qualified Bookkeeper\n"
     , "import qualified Prelude\n"
     , String.joinWith "" declarations
     ]
@@ -186,6 +190,7 @@ compileLiteral literal = case literal of
   CharLiteral { value } -> show value
   IntegerLiteral { value } -> show value
   NumberLiteral { value } -> show value
+  RecordLiteral { value } -> "Bookkeeper.emptyBook"
   StringLiteral { value } -> show value
 
 compileIdentifier :: Identifier -> String
@@ -332,6 +337,7 @@ instance decodeJsonLiteral :: Argonaut.DecodeJson Literal where
       "CharLiteral" -> decodeCharLiteral tail
       "IntLiteral" -> decodeIntegerLiteral tail
       "NumberLiteral" -> decodeNumberLiteral tail
+      "ObjectLiteral" -> decodeRecordLiteral tail
       "StringLiteral" -> decodeStringLiteral tail
       _ -> Either.Left "unknown literal"
 
@@ -376,6 +382,14 @@ decodeNumberLiteral array = do
     _ -> Either.Left "invalid number value"
   value <- toEither "number json not number" (Argonaut.toNumber json)
   Either.Right (NumberLiteral { value })
+
+decodeRecordLiteral :: Array Argonaut.Json -> Either.Either String Literal
+decodeRecordLiteral array = do
+  json <- case array of
+    [element] -> Either.Right element
+    _ -> Either.Left "invalid record value"
+  value <- Argonaut.decodeJson json
+  Either.Right (RecordLiteral { value })
 
 decodeStringLiteral :: Array Argonaut.Json -> Either.Either String Literal
 decodeStringLiteral array = do

@@ -29,6 +29,7 @@ foreign import moduleNameCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
+foreign import objectCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
 
 main :: Eff.Eff
@@ -45,6 +46,7 @@ main = Main.runTest do
 module M
 ()
 where
+import qualified Bookkeeper
 import qualified Prelude
 """
         let actual = Thran.compile emptyCoreFn
@@ -55,6 +57,7 @@ import qualified Prelude
 module M
 (identity)
 where
+import qualified Bookkeeper
 import qualified Prelude
 identity = (\ x -> x)
 """
@@ -66,6 +69,7 @@ identity = (\ x -> x)
 module M
 (apply)
 where
+import qualified Bookkeeper
 import qualified Prelude
 apply = (\ f -> (\ x -> (f x)))
 """
@@ -77,6 +81,7 @@ apply = (\ f -> (\ x -> (f x)))
 module M
 (boolean)
 where
+import qualified Bookkeeper
 import qualified Prelude
 boolean = Prelude.False
 """
@@ -88,6 +93,7 @@ boolean = Prelude.False
 module M
 (int)
 where
+import qualified Bookkeeper
 import qualified Prelude
 int = 0
 """
@@ -99,6 +105,7 @@ int = 0
 module M
 (number)
 where
+import qualified Bookkeeper
 import qualified Prelude
 number = 0.0
 """
@@ -110,6 +117,7 @@ number = 0.0
 module M
 (char)
 where
+import qualified Bookkeeper
 import qualified Prelude
 char = 'a'
 """
@@ -121,6 +129,7 @@ char = 'a'
 module M
 (string)
 where
+import qualified Bookkeeper
 import qualified Prelude
 string = ""
 """
@@ -132,6 +141,7 @@ string = ""
 module M
 (array)
 where
+import qualified Bookkeeper
 import qualified Prelude
 array = [0, 1]
 """
@@ -143,6 +153,7 @@ array = [0, 1]
 module M
 (identity)
 where
+import qualified Bookkeeper
 import qualified Prelude
 identity = (\ x -> (case (x) of { (y) -> y }))
 """
@@ -154,6 +165,7 @@ identity = (\ x -> (case (x) of { (y) -> y }))
 module M
 (not)
 where
+import qualified Bookkeeper
 import qualified Prelude
 not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))
 """
@@ -165,6 +177,7 @@ not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) ->
 module M
 (f)
 where
+import qualified Bookkeeper
 import qualified Prelude
 f = (\ x -> (case (x, x) of { (y, z) -> x }))
 """
@@ -176,6 +189,7 @@ f = (\ x -> (case (x, x) of { (y, z) -> x }))
 module M
 (f)
 where
+import qualified Bookkeeper
 import qualified Prelude
 f = (\ x -> (case (x) of { (_) -> x }))
 """
@@ -187,6 +201,7 @@ f = (\ x -> (case (x) of { (_) -> x }))
 module M
 (f)
 where
+import qualified Bookkeeper
 import qualified Prelude
 f = (\ x -> (let { y = x } in y))
 """
@@ -198,6 +213,7 @@ f = (\ x -> (let { y = x } in y))
 module M
 (f, g)
 where
+import qualified Bookkeeper
 import qualified Prelude
 f = (\ x -> x)
 g = M.f
@@ -210,7 +226,20 @@ g = M.f
 module Aa1.Bb1
 ()
 where
+import qualified Bookkeeper
 import qualified Prelude
 """
         let actual = Thran.compile moduleNameCoreFn
+        Assert.equal expected actual
+      Test.test "object literal" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+-- Built with psc version 0.10.3.
+module M
+(x)
+where
+import qualified Bookkeeper
+import qualified Prelude
+x = Bookkeeper.emptyBook
+"""
+        let actual = Thran.compile objectCoreFn
         Assert.equal expected actual
