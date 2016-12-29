@@ -30,6 +30,7 @@ foreign import multipleCaseCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
+foreign import newtypeCoreFn :: Argonaut.Json
 foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import recordAccessCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
@@ -325,4 +326,19 @@ import qualified Prelude
 f = (\ x -> (Bookkeeper.get #k x))
 """
         let actual = Thran.compile recordAccessCoreFn
+        Assert.equal expected actual
+      Test.test "newtype" do
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedLabels #-}
+-- Built with psc version 0.10.3.
+module M
+(_X)
+where
+import qualified Bookkeeper
+import qualified Prelude
+_X = (\ x -> x)
+"""
+        let actual = Thran.compile newtypeCoreFn
         Assert.equal expected actual

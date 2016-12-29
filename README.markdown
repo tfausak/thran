@@ -17,6 +17,7 @@ For example, given the following PureScript module:
 
 ``` purescript
 module Example where
+newtype Tagged tag value = Tagged value
 were x = y where y = x
 string = "thran"
 number = 1.2
@@ -44,10 +45,11 @@ Thran generates this Haskell module:
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module Example
-(access, apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
+(_Tagged, access, apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
 where
 import qualified Bookkeeper
 import qualified Prelude
+_Tagged = (\ x -> x)
 were = (\ x -> (let { y = x } in y))
 string = "thran"
 number = 1.2
@@ -78,6 +80,8 @@ So far, Thran supports:
 - Empty record literals (requires Bookkeeper)
 - Non-empty record literals
 - Record access
+- Newtypes, but they compile into functions
+  - PureScript's `newtype X = X Int` is translated into `_X = (\ x -> x)`
 
 Currently Thran does not support:
 
@@ -92,7 +96,6 @@ Currently Thran does not support:
 Thran has a few limitations based on the corefn:
 
 - Type information isn't available, so everything has to be inferred
-  - This means record access is broken if it's too polymorphic
 - Type classes, newtypes, and data types aren't translated one-to-one
   - They (will) translate as dictionaries and functions
 

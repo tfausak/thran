@@ -15,6 +15,7 @@ module.exports = {
   nullCaseCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["f"],"decls":[{"f":["Abs","x",["Case",[["Var","x"]],[[["NullBinder"],["Var","x"]]]]]}],"foreign":[]}},
   numberCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["number"],"decls":[{"number":["Literal",["NumberLiteral",0]]}],"foreign":[]}},
   objectCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["x"],"decls":[{"x":["Literal",["ObjectLiteral",{}]]}],"foreign":[]}},
+  newtypeCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["X"],"decls":[{"X":["Abs","x",["Var","x"]]}],"foreign":[]}},
   nonEmptyObjectCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["x"],"decls":[{"x":["Literal",["ObjectLiteral",{"a":["Literal",["IntLiteral",1]]}]]}],"foreign":[]}},
   recordAccessCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["f"],"decls":[{"f":["Abs","x",["Accessor","k",["Var","x"]]]}],"foreign":[]}},
   stringCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["string"],"decls":[{"string":["Literal",["StringLiteral",""]]}],"foreign":[]}},

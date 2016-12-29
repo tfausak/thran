@@ -8,6 +8,8 @@ import Data.Either as Either
 import Data.Int as Int
 import Data.Maybe as Maybe
 import Data.String as String
+import Data.String.Regex as Regex
+import Data.String.Regex.Flags as Flags
 import Data.StrMap as StrMap
 import Data.Traversable as Traversable
 import Data.Tuple as Tuple
@@ -223,7 +225,21 @@ compileLiteral literal = case literal of
   StringLiteral { value } -> show value
 
 compileIdentifier :: Identifier -> String
-compileIdentifier (Identifier name) = name
+compileIdentifier (Identifier name) = do
+  let parts = String.split (String.Pattern ".") name
+  let newParts = case Array.unsnoc parts of
+        Maybe.Just { init, last } -> do
+          let newLast = mungeName last
+          Array.snoc init newLast
+        Maybe.Nothing -> parts
+  String.joinWith "." newParts
+
+mungeName :: String -> String
+mungeName string = case Regex.regex "^([A-Z])" Flags.noFlags of
+  Either.Right pattern -> do
+    let replace character _ = "_" <> character
+    Regex.replace' pattern replace string
+  Either.Left _ -> string
 
 -- JSON
 
