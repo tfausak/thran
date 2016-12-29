@@ -32,6 +32,7 @@ case_ x = case x of
 boolean = true
 array = [1, 2, 3]
 apply f x = f x
+access person = person.name
 ```
 
 Thran generates this Haskell module:
@@ -41,7 +42,7 @@ Thran generates this Haskell module:
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module Example
-(apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
+(access, apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
 where
 import qualified Bookkeeper
 import qualified Prelude
@@ -59,6 +60,7 @@ case_ = (\ x -> (case (x) of { (y) -> y }))
 boolean = Prelude.True
 array = [1, 2, 3]
 apply = (\ f -> (\ x -> (f x)))
+access = (\ person -> (Bookkeeper.get #name person))
 ```
 
 Thran is still a young project.
@@ -73,10 +75,10 @@ So far, Thran supports:
 - Negative numbers, but you have to bring your own `negate`
 - Empty record literals (requires Bookkeeper)
 - Non-empty record literals
+- Record access, however it might not work
 
 Currently Thran does not support:
 
-- Record access
 - Module imports
 - Foreign imports
 - Recursive declarations
@@ -84,6 +86,13 @@ Currently Thran does not support:
 - Newtype wrappers
 - Type classes
 - Guard clauses
+
+Thran has a few limitations based on the corefn:
+
+- Type information isn't available, so everything has to be inferred
+  - This means record access is broken if it's too polymorphic
+- Type classes, newtypes, and data types aren't translated one-to-one
+  - They (will) translate as dictionaries and functions
 
 Thran is a proof of concept at this point.
 Don't use it for anything serious.

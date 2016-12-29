@@ -33,7 +33,11 @@ data Declaration = Declaration
   }
 
 data Expression
-  = ApplicationExpression
+  = AccessorExpression
+    { field :: String
+    , record :: Expression
+    }
+  | ApplicationExpression
     { left :: Expression
     , right :: Expression
     }
@@ -127,6 +131,15 @@ compileDeclaration (Declaration declaration) = do
 
 compileExpression :: Expression -> String
 compileExpression expression = case expression of
+  AccessorExpression { field, record } -> do
+    let compiledRecord = compileExpression record
+    String.joinWith ""
+      [ "("
+      , "Bookkeeper.get"
+      , " #" <> field <> " "
+      , compiledRecord
+      , ")"
+      ]
   ApplicationExpression { left, right } -> do
     let compiledLeft = compileExpression left
     let compiledRight = compileExpression right
@@ -248,12 +261,22 @@ instance decodeJsonExpression :: Argonaut.DecodeJson Expression where
     kind <- toEither "expression kind not string" (Argonaut.toString head)
     case kind of
       "Abs" -> decodeFunctionExpression tail
+      "Accessor" -> decodeAccessorExpression tail
       "App" -> decodeApplicationExpression tail
       "Case" -> decodeCaseExpression tail
       "Let" -> decodeLetExpression tail
       "Literal" -> decodeLiteralExpression tail
       "Var" -> decodeVariableExpression tail
       _ -> Either.Left "unknown expression"
+
+decodeAccessorExpression :: Array Argonaut.Json -> Either.Either String Expression
+decodeAccessorExpression array = do
+  case array of
+    [first, second] -> do
+      field <- Argonaut.decodeJson first
+      record <- Argonaut.decodeJson second
+      Either.Right (AccessorExpression { field, record })
+    _ -> Either.Left "invalid accessor"
 
 decodeApplicationExpression :: Array Argonaut.Json -> Either.Either String Expression
 decodeApplicationExpression array = do

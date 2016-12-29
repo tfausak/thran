@@ -31,6 +31,7 @@ foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
 foreign import nonEmptyObjectCoreFn :: Argonaut.Json
+foreign import recordAccessCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
 
 main :: Eff.Eff
@@ -273,4 +274,17 @@ import qualified Prelude
 x = (Bookkeeper.emptyBook Bookkeeper.& #a Bookkeeper.=: 1)
 """
         let actual = Thran.compile nonEmptyObjectCoreFn
+        Assert.equal expected actual
+      Test.test "record access" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
+-- Built with psc version 0.10.3.
+module M
+(f)
+where
+import qualified Bookkeeper
+import qualified Prelude
+f = (\ x -> (Bookkeeper.get #k x))
+"""
+        let actual = Thran.compile recordAccessCoreFn
         Assert.equal expected actual
