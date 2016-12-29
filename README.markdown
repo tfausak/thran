@@ -64,6 +64,7 @@ So far, Thran supports:
 - Case expressions (`case _ of _`), including `if _ then _ else _`
 - Let expressions (`let _ in _`), including `_ where _`
 - Do notation, but you have to bring your own `bind`
+- Negative numbers, but you have to bring your own `negate`
 
 Currently Thran does not support:
 
