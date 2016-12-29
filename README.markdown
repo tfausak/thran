@@ -63,6 +63,7 @@ So far, Thran supports:
 - Array, boolean, character, function, integer, number, and string literals
 - Case expressions (`case _ of _`), including `if _ then _ else _`
 - Let expressions (`let _ in _`), including `_ where _`
+- Do notation, but you have to bring your own `bind`
 
 Currently Thran does not support:
 
@@ -73,7 +74,6 @@ Currently Thran does not support:
 - Data constructors
 - Newtype wrappers
 - Type classes
-- Do notation
 - Guard clauses
 
 Thran is a proof of concept at this point.
