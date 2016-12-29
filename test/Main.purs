@@ -30,6 +30,7 @@ foreign import multipleCaseCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
+foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
 
 main :: Eff.Eff
@@ -42,6 +43,7 @@ main = Main.runTest do
     Test.suite "compile" do
       Test.test "nothing" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 ()
@@ -53,6 +55,7 @@ import qualified Prelude
         Assert.equal expected actual
       Test.test "function declaration" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (identity)
@@ -65,6 +68,7 @@ identity = (\ x -> x)
         Assert.equal expected actual
       Test.test "function application" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (apply)
@@ -77,6 +81,7 @@ apply = (\ f -> (\ x -> (f x)))
         Assert.equal expected actual
       Test.test "boolean literal" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (boolean)
@@ -89,6 +94,7 @@ boolean = Prelude.False
         Assert.equal expected actual
       Test.test "integer literal" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (int)
@@ -101,6 +107,7 @@ int = 0
         Assert.equal expected actual
       Test.test "number literal" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (number)
@@ -113,6 +120,7 @@ number = 0.0
         Assert.equal expected actual
       Test.test "character literal" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (char)
@@ -125,6 +133,7 @@ char = 'a'
         Assert.equal expected actual
       Test.test "string literal" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (string)
@@ -137,6 +146,7 @@ string = ""
         Assert.equal expected actual
       Test.test "array literal" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (array)
@@ -149,6 +159,7 @@ array = [0, 1]
         Assert.equal expected actual
       Test.test "case expression" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (identity)
@@ -161,6 +172,7 @@ identity = (\ x -> (case (x) of { (y) -> y }))
         Assert.equal expected actual
       Test.test "conditional expression" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (not)
@@ -173,6 +185,7 @@ not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) ->
         Assert.equal expected actual
       Test.test "case expression with multiple binders" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (f)
@@ -185,6 +198,7 @@ f = (\ x -> (case (x, x) of { (y, z) -> x }))
         Assert.equal expected actual
       Test.test "case expression with null binder" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (f)
@@ -197,6 +211,7 @@ f = (\ x -> (case (x) of { (_) -> x }))
         Assert.equal expected actual
       Test.test "let expression" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (f)
@@ -209,6 +224,7 @@ f = (\ x -> (let { y = x } in y))
         Assert.equal expected actual
       Test.test "intra-module identifier reference" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (f, g)
@@ -222,6 +238,7 @@ g = M.f
         Assert.equal expected actual
       Test.test "interesting module name" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module Aa1.Bb1
 ()
@@ -233,13 +250,27 @@ import qualified Prelude
         Assert.equal expected actual
       Test.test "object literal" do
         let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
 (x)
 where
 import qualified Bookkeeper
 import qualified Prelude
-x = Bookkeeper.emptyBook
+x = (Bookkeeper.emptyBook)
 """
         let actual = Thran.compile objectCoreFn
+        Assert.equal expected actual
+      Test.test "non-empty object literal" do
+        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
+-- Built with psc version 0.10.3.
+module M
+(x)
+where
+import qualified Bookkeeper
+import qualified Prelude
+x = (Bookkeeper.emptyBook Bookkeeper.& #a Bookkeeper.=: 1)
+"""
+        let actual = Thran.compile nonEmptyObjectCoreFn
         Assert.equal expected actual

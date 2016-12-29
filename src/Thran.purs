@@ -106,6 +106,7 @@ compileModule (Module module_) = do
   let declarations = map compileDeclaration module_.declarations
   String.joinWith ""
     [ "{-# LANGUAGE NoImplicitPrelude #-}\n"
+    , "{-# LANGUAGE OverloadedLabels #-}\n"
     , "-- Built with psc version ", module_.pscVersion, ".\n"
     , "module ", compileModuleName module_.name, "\n"
     , "(", String.joinWith ", " exports, ")\n"
@@ -190,7 +191,20 @@ compileLiteral literal = case literal of
   CharLiteral { value } -> show value
   IntegerLiteral { value } -> show value
   NumberLiteral { value } -> show value
-  RecordLiteral { value } -> "Bookkeeper.emptyBook"
+  RecordLiteral { value } -> do
+    let elements = StrMap.fold
+          (\ a k v -> a <> [String.joinWith ""
+            [ "#" <> k
+            , " Bookkeeper.=: "
+            , compileExpression v
+            ]])
+          ["Bookkeeper.emptyBook"]
+          value
+    String.joinWith ""
+      [ "("
+      , String.joinWith " Bookkeeper.& " elements
+      , ")"
+      ]
   StringLiteral { value } -> show value
 
 compileIdentifier :: Identifier -> String

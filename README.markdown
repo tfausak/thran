@@ -21,9 +21,11 @@ were x = y where y = x
 string = "thran"
 number = 1.2
 not x = if x then false else true
+nonEmpty = { a: 1 }
 letter x = let y = x in y
 integer = 7
 identity x = x
+empty = {}
 character = 't'
 case_ x = case x of
   y -> y
@@ -36,9 +38,10 @@ Thran generates this Haskell module:
 
 ``` haskell
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module Example
-(apply, array, boolean, case_, character, empty, identity, integer, letter, not, number, string, were)
+(apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
 where
 import qualified Bookkeeper
 import qualified Prelude
@@ -46,10 +49,11 @@ were = (\ x -> (let { y = x } in y))
 string = "thran"
 number = 1.2
 not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))
+nonEmpty = (Bookkeeper.emptyBook Bookkeeper.& #a Bookkeeper.=: 1)
 letter = (\ x -> (let { y = x } in y))
 integer = 7
 identity = (\ x -> x)
-empty = Bookkeeper.emptyBook
+empty = (Bookkeeper.emptyBook)
 character = 't'
 case_ = (\ x -> (case (x) of { (y) -> y }))
 boolean = Prelude.True
@@ -68,10 +72,11 @@ So far, Thran supports:
 - Do notation, but you have to bring your own `bind`
 - Negative numbers, but you have to bring your own `negate`
 - Empty record literals (requires Bookkeeper)
+- Non-empty record literals
 
 Currently Thran does not support:
 
-- Non-empty record literals
+- Record access
 - Module imports
 - Foreign imports
 - Recursive declarations
