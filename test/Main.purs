@@ -43,7 +43,9 @@ main = Main.runTest do
   Test.suite "Thran" do
     Test.suite "compile" do
       Test.test "nothing" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -55,7 +57,9 @@ import qualified Prelude
         let actual = Thran.compile emptyCoreFn
         Assert.equal expected actual
       Test.test "function declaration" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -68,7 +72,9 @@ identity = (\ x -> x)
         let actual = Thran.compile functionCoreFn
         Assert.equal expected actual
       Test.test "function application" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -81,7 +87,9 @@ apply = (\ f -> (\ x -> (f x)))
         let actual = Thran.compile applicationCoreFn
         Assert.equal expected actual
       Test.test "boolean literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -94,7 +102,9 @@ boolean = Prelude.False
         let actual = Thran.compile booleanCoreFn
         Assert.equal expected actual
       Test.test "integer literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -107,7 +117,9 @@ int = 0
         let actual = Thran.compile integerCoreFn
         Assert.equal expected actual
       Test.test "number literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -120,7 +132,9 @@ number = 0.0
         let actual = Thran.compile numberCoreFn
         Assert.equal expected actual
       Test.test "character literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -133,7 +147,9 @@ char = 'a'
         let actual = Thran.compile characterCoreFn
         Assert.equal expected actual
       Test.test "string literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -146,7 +162,9 @@ string = ""
         let actual = Thran.compile stringCoreFn
         Assert.equal expected actual
       Test.test "array literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -159,7 +177,9 @@ array = [0, 1]
         let actual = Thran.compile arrayCoreFn
         Assert.equal expected actual
       Test.test "case expression" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -172,7 +192,9 @@ identity = (\ x -> (case (x) of { (y) -> y }))
         let actual = Thran.compile caseCoreFn
         Assert.equal expected actual
       Test.test "conditional expression" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -185,7 +207,9 @@ not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) ->
         let actual = Thran.compile conditionalCoreFn
         Assert.equal expected actual
       Test.test "case expression with multiple binders" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -198,7 +222,9 @@ f = (\ x -> (case (x, x) of { (y, z) -> x }))
         let actual = Thran.compile multipleCaseCoreFn
         Assert.equal expected actual
       Test.test "case expression with null binder" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -211,7 +237,9 @@ f = (\ x -> (case (x) of { (_) -> x }))
         let actual = Thran.compile nullCaseCoreFn
         Assert.equal expected actual
       Test.test "let expression" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -224,7 +252,9 @@ f = (\ x -> (let { y = x } in y))
         let actual = Thran.compile letCoreFn
         Assert.equal expected actual
       Test.test "intra-module identifier reference" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -238,7 +268,9 @@ g = M.f
         let actual = Thran.compile identifierCoreFn
         Assert.equal expected actual
       Test.test "interesting module name" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module Aa1.Bb1
@@ -250,7 +282,9 @@ import qualified Prelude
         let actual = Thran.compile moduleNameCoreFn
         Assert.equal expected actual
       Test.test "object literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -263,7 +297,9 @@ x = (Bookkeeper.emptyBook)
         let actual = Thran.compile objectCoreFn
         Assert.equal expected actual
       Test.test "non-empty object literal" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M
@@ -276,7 +312,9 @@ x = (Bookkeeper.emptyBook Bookkeeper.& #a Bookkeeper.=: 1)
         let actual = Thran.compile nonEmptyObjectCoreFn
         Assert.equal expected actual
       Test.test "record access" do
-        let expected = Either.Right """{-# LANGUAGE NoImplicitPrelude #-}
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module M

@@ -109,7 +109,9 @@ compileModule (Module module_) = do
   let exports = map compileIdentifier module_.exports
   let declarations = map compileDeclaration module_.declarations
   String.joinWith ""
-    [ "{-# LANGUAGE NoImplicitPrelude #-}\n"
+    [ "{-# LANGUAGE FlexibleContexts #-}\n"
+    , "{-# LANGUAGE NoImplicitPrelude #-}\n"
+    , "{-# LANGUAGE NoMonomorphismRestriction #-}\n"
     , "{-# LANGUAGE OverloadedLabels #-}\n"
     , "-- Built with psc version ", module_.pscVersion, ".\n"
     , "module ", compileModuleName module_.name, "\n"

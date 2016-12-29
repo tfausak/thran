@@ -38,7 +38,9 @@ access person = person.name
 Thran generates this Haskell module:
 
 ``` haskell
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module Example
@@ -75,7 +77,7 @@ So far, Thran supports:
 - Negative numbers, but you have to bring your own `negate`
 - Empty record literals (requires Bookkeeper)
 - Non-empty record literals
-- Record access, however it might not work
+- Record access
 
 Currently Thran does not support:
 
