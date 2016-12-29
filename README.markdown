@@ -18,6 +18,8 @@ For example, given the following PureScript module:
 ``` purescript
 module Example where
 newtype Tagged tag value = Tagged value
+class Semigroup a where
+  append :: a -> a -> a
 were x = y where y = x
 string = "thran"
 number = 1.2
@@ -45,11 +47,12 @@ Thran generates this Haskell module:
 {-# LANGUAGE OverloadedLabels #-}
 -- Built with psc version 0.10.3.
 module Example
-(_Tagged, access, apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
+(_Tagged, _Semigroup, access, append, apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
 where
 import qualified Bookkeeper
 import qualified Prelude
 _Tagged = (\ x -> x)
+_Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& #append Bookkeeper.=: append))
 were = (\ x -> (let { y = x } in y))
 string = "thran"
 number = 1.2
@@ -64,6 +67,7 @@ case_ = (\ x -> (case (x) of { (y) -> y }))
 boolean = Prelude.True
 array = [1, 2, 3]
 apply = (\ f -> (\ x -> (f x)))
+append = (\ dict -> (Bookkeeper.get #append dict))
 access = (\ person -> (Bookkeeper.get #name person))
 ```
 
@@ -82,6 +86,8 @@ So far, Thran supports:
 - Record access
 - Newtypes, but they compile into functions
   - PureScript's `newtype X = X Int` is translated into `_X = (\ x -> x)`
+- Type classes, but not super classes
+  - Like newtypes they compile into functions
 
 Currently Thran does not support:
 
@@ -89,8 +95,6 @@ Currently Thran does not support:
 - Foreign imports
 - Recursive declarations
 - Data constructors
-- Newtype wrappers
-- Type classes
 - Guard clauses
 
 Thran has a few limitations based on the corefn:

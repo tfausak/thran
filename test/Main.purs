@@ -34,6 +34,7 @@ foreign import newtypeCoreFn :: Argonaut.Json
 foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import recordAccessCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
+foreign import typeClassCoreFn :: Argonaut.Json
 
 main :: Eff.Eff
   ( console :: CONSOLE
@@ -341,4 +342,20 @@ import qualified Prelude
 _X = (\ x -> x)
 """
         let actual = Thran.compile newtypeCoreFn
+        Assert.equal expected actual
+      Test.test "type class" do
+        let expected = Either.Right """{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedLabels #-}
+-- Built with psc version 0.10.3.
+module M
+(_Semigroup, append)
+where
+import qualified Bookkeeper
+import qualified Prelude
+_Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& #append Bookkeeper.=: append))
+append = (\ dict -> (Bookkeeper.get #append dict))
+"""
+        let actual = Thran.compile typeClassCoreFn
         Assert.equal expected actual

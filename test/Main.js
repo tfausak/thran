@@ -19,4 +19,5 @@ module.exports = {
   nonEmptyObjectCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["x"],"decls":[{"x":["Literal",["ObjectLiteral",{"a":["Literal",["IntLiteral",1]]}]]}],"foreign":[]}},
   recordAccessCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["f"],"decls":[{"f":["Abs","x",["Accessor","k",["Var","x"]]]}],"foreign":[]}},
   stringCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["string"],"decls":[{"string":["Literal",["StringLiteral",""]]}],"foreign":[]}},
+  typeClassCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["Semigroup","append"],"decls":[{"Semigroup":["Abs","append",["Literal",["ObjectLiteral",{"append":["Var","append"]}]]]},{"append":["Abs","dict",["Accessor","append",["Var","dict"]]]}],"foreign":[]}},
 }
