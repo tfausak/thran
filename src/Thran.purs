@@ -111,15 +111,18 @@ compileModule (Module module_) = do
   let exports = map compileIdentifier module_.exports
   let declarations = map compileDeclaration module_.declarations
   String.joinWith ""
-    [ "{-# LANGUAGE FlexibleContexts #-}\n"
+    [ "{-# LANGUAGE DataKinds #-}\n"
+    , "{-# LANGUAGE FlexibleContexts #-}\n"
+    , "{-# LANGUAGE MagicHash #-}\n"
     , "{-# LANGUAGE NoImplicitPrelude #-}\n"
     , "{-# LANGUAGE NoMonomorphismRestriction #-}\n"
-    , "{-# LANGUAGE OverloadedLabels #-}\n"
     , "-- Built with psc version ", module_.pscVersion, ".\n"
     , "module ", compileModuleName module_.name, "\n"
     , "(", String.joinWith ", " exports, ")\n"
     , "where\n"
     , "import qualified Bookkeeper\n"
+    , "import qualified GHC.OverloadedLabels\n"
+    , "import qualified GHC.Prim\n"
     , "import qualified Prelude\n"
     , String.joinWith "" declarations
     ]
@@ -136,11 +139,12 @@ compileDeclaration (Declaration declaration) = do
 compileExpression :: Expression -> String
 compileExpression expression = case expression of
   AccessorExpression { field, record } -> do
+    let compiledLabel = compileLabel field
     let compiledRecord = compileExpression record
     String.joinWith ""
-      [ "("
-      , "Bookkeeper.get"
-      , " #" <> field <> " "
+      [ "(Bookkeeper.get "
+      , compiledLabel
+      , " "
       , compiledRecord
       , ")"
       ]
@@ -174,6 +178,13 @@ compileExpression expression = case expression of
       ]
   LiteralExpression { literal } -> compileLiteral literal
   VariableExpression { name } -> compileIdentifier name
+
+compileLabel :: String -> String
+compileLabel label = String.joinWith ""
+  [ "(GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \""
+  , label
+  , "\"))"
+  ]
 
 compileBinds :: StrMap.StrMap Expression -> String
 compileBinds binds = do
@@ -211,7 +222,7 @@ compileLiteral literal = case literal of
   RecordLiteral { value } -> do
     let elements = StrMap.fold
           (\ a k v -> a <> [String.joinWith ""
-            [ "#" <> k
+            [ compileLabel k
             , " Bookkeeper.=: "
             , compileExpression v
             ]])

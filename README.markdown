@@ -87,7 +87,7 @@ So far, Thran supports:
 - Newtypes, but they compile into functions
   - PureScript's `newtype X = X Int` is translated into `_X = (\ x -> x)`
 - Type classes, but not super classes
-  - Like newtypes they compile into functions
+  - Like newtypes, they compile into functions
 
 Currently Thran does not support:
 
@@ -101,7 +101,7 @@ Thran has a few limitations based on the corefn:
 
 - Type information isn't available, so everything has to be inferred
 - Type classes, newtypes, and data types aren't translated one-to-one
-  - They (will) translate as dictionaries and functions
+  - They translate as dictionaries and functions
 
 Thran is a proof of concept at this point.
 Don't use it for anything serious.
