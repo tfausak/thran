@@ -17,58 +17,139 @@ For example, given the following PureScript module:
 
 ``` purescript
 module Example where
+
+-- function with a single argument
+identity = \ x -> x
+
+-- function with multiple arguments
+constant x y = x
+
+-- function application
+apply f x = f x
+
+-- Boolean literal
+boolean = true
+
+-- Int literal
+integer = 7
+
+-- Number literal
+number = 1.2
+
+-- Char literal
+character = 't'
+
+-- String literal
+string = "thran"
+
+-- Array literal
+array = [1, 2, 3]
+
+-- empty Record literal
+empty = {}
+
+-- non-empty Record literal
+nonEmpty = { name: "thran" }
+
+-- record access
+getName person = person.name
+
+-- case expression
+switch x = case x of
+  y -> y
+
+-- conditional expression
+not x = if x then false else true
+
+-- "let ... in ..." expression
+letIdentity = let f = identity in f
+
+-- "... where ..." expression
+whereIdentity = f where f = identity
+
+-- newtype
 newtype Tagged tag value = Tagged value
+
+-- type class
 class Semigroup a where
   append :: a -> a -> a
-were x = y where y = x
-string = "thran"
-number = 1.2
-not x = if x then false else true
-nonEmpty = { a: 1 }
-letter x = let y = x in y
-integer = 7
-identity x = x
-empty = {}
-character = 't'
-case_ x = case x of
-  y -> y
-boolean = true
-array = [1, 2, 3]
-apply f x = f x
-access person = person.name
 ```
 
 Thran generates this Haskell module:
 
 ``` haskell
+-- Built with psc version 0.10.3.
+
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedLabels #-}
--- Built with psc version 0.10.3.
-module Example
-(_Tagged, _Semigroup, access, append, apply, array, boolean, case_, character, empty, identity, integer, letter, nonEmpty, not, number, string, were)
-where
+
+module Example (
+  _Tagged,
+  _Semigroup,
+  append,
+  apply,
+  array,
+  boolean,
+  character,
+  constant,
+  empty,
+  getName,
+  identity,
+  integer,
+  letIdentity,
+  nonEmpty,
+  not,
+  number,
+  string,
+  switch,
+  whereIdentity,
+) where
+
 import qualified Bookkeeper
+import qualified GHC.OverloadedLabels
+import qualified GHC.Prim
 import qualified Prelude
+
 _Tagged = (\ x -> x)
-_Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& #append Bookkeeper.=: append))
-were = (\ x -> (let { y = x } in y))
+
+_Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))
+
+switch = (\ x -> (case (x) of { (y) -> y }))
+
 string = "thran"
+
 number = 1.2
+
 not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))
-nonEmpty = (Bookkeeper.emptyBook Bookkeeper.& #a Bookkeeper.=: 1)
-letter = (\ x -> (let { y = x } in y))
+
+nonEmpty = (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "name")) Bookkeeper.=: "thran")
+
 integer = 7
+
 identity = (\ x -> x)
+
+letIdentity = (let { f = Example.identity } in f)
+
+whereIdentity = (let { f = Example.identity } in f)
+
+getName = (\ person -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "name")) person))
+
 empty = (Bookkeeper.emptyBook)
+
+constant = (\ x -> (\ y -> x))
+
 character = 't'
-case_ = (\ x -> (case (x) of { (y) -> y }))
+
 boolean = Prelude.True
+
 array = [1, 2, 3]
+
 apply = (\ f -> (\ x -> (f x)))
-append = (\ dict -> (Bookkeeper.get #append dict))
-access = (\ person -> (Bookkeeper.get #name person))
+
+append = (\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) dict))
 ```
 
 Thran is still a young project.

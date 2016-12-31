@@ -111,20 +111,25 @@ compileModule (Module module_) = do
   let exports = map compileIdentifier module_.exports
   let declarations = map compileDeclaration module_.declarations
   String.joinWith ""
-    [ "{-# LANGUAGE DataKinds #-}\n"
+    [ "-- Built with psc version ", module_.pscVersion, ".\n"
+    , "\n"
+    , "{-# LANGUAGE DataKinds #-}\n"
     , "{-# LANGUAGE FlexibleContexts #-}\n"
     , "{-# LANGUAGE MagicHash #-}\n"
     , "{-# LANGUAGE NoImplicitPrelude #-}\n"
     , "{-# LANGUAGE NoMonomorphismRestriction #-}\n"
-    , "-- Built with psc version ", module_.pscVersion, ".\n"
-    , "module ", compileModuleName module_.name, "\n"
-    , "(", String.joinWith ", " exports, ")\n"
-    , "where\n"
+    , "\n"
+    , "module ", compileModuleName module_.name, " (\n"
+    , String.joinWith "" (map (\ x -> String.joinWith "" ["  ", x, ",\n"]) exports)
+    , ") where\n"
+    , "\n"
     , "import qualified Bookkeeper\n"
     , "import qualified GHC.OverloadedLabels\n"
     , "import qualified GHC.Prim\n"
     , "import qualified Prelude\n"
-    , String.joinWith "" declarations
+    , "\n"
+    , String.joinWith "\n\n" declarations
+    , "\n"
     ]
 
 compileModuleName :: ModuleName -> String
@@ -134,7 +139,7 @@ compileDeclaration :: Declaration -> String
 compileDeclaration (Declaration declaration) = do
   let name = compileIdentifier declaration.name
   let expression = compileExpression declaration.expression
-  String.joinWith "" [name, " = ", expression, "\n"]
+  String.joinWith "" [name, " = ", expression]
 
 compileExpression :: Expression -> String
 compileExpression expression = case expression of
