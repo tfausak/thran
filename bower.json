@@ -2,7 +2,7 @@
   "dependencies": {
     "purescript-argonaut": "2.0.0",
     "purescript-arrays": "3.1.0",
-    "purescript-console": "2.0.00",
+    "purescript-console": "2.0.0",
     "purescript-either": "2.0.0",
     "purescript-exceptions": "2.0.0",
     "purescript-foldable-traversable": "2.0.0",
