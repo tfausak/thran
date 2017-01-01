@@ -53,7 +53,7 @@ Don't use it for anything serious.
 
 This table shows how Thran compiles PureScript declarations and expressions into Haskell.
 
-| PureScript | Haskell
+- | PureScript | Haskell
 --- | --- | ---
 boolean | `true` | `Prelude.True`
 integer | `7` | `7`
