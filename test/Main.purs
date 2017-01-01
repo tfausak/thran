@@ -27,11 +27,11 @@ foreign import integerCoreFn :: Argonaut.Json
 foreign import letCoreFn :: Argonaut.Json
 foreign import moduleNameCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
+foreign import newtypeCoreFn :: Argonaut.Json
+foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
-foreign import newtypeCoreFn :: Argonaut.Json
-foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import recordAccessCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
 foreign import superClassCoreFn :: Argonaut.Json
