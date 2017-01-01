@@ -29,8 +29,8 @@ So far, Thran supports:
 - Negative numbers, but you have to bring your own `negate`
 - Records
 - Record field access
-- Newtypes, but they compile into functions
-- Type classes, including super classes
+- Newtypes
+- Defining type classes, including super classes
 
 Currently Thran does not support:
 
@@ -39,6 +39,7 @@ Currently Thran does not support:
 - Recursive declarations
 - Data constructors
 - Guard clauses
+- Using type classes
 
 Thran has a few limitations based on the corefn:
 
@@ -72,6 +73,7 @@ let | `let x = 1 in x` | `(let { x = 1 } in x)`
 where | `y where y = 2` | `(let { y = 2 } in y)`
 newtype | `newtype T = T Int` | `_T = (\ x -> x)`
 type class | `class C a where f :: a` | `_C = (\ f -> (emptyBook & #f =: f))`
+superclass | `class C <= S` | `_S = (\ x -> (emptyBook & #superclass =: x))`
 
 ## Records
 

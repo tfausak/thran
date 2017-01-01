@@ -34,6 +34,7 @@ foreign import newtypeCoreFn :: Argonaut.Json
 foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import recordAccessCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
+foreign import superClassCoreFn :: Argonaut.Json
 foreign import typeClassCoreFn :: Argonaut.Json
 
 main :: Eff.Eff
@@ -509,4 +510,29 @@ _Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabe
 append = (\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) dict))
 """
         let actual = Thran.compile typeClassCoreFn
+        Assert.equal expected actual
+      Test.test "superclass" do
+        let expected = Either.Right """-- Built with psc version 0.10.3.
+
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
+module M (
+  _A,
+  _B,
+) where
+
+import qualified Bookkeeper
+import qualified GHC.OverloadedLabels
+import qualified GHC.Prim
+import qualified Prelude
+
+_A = (Bookkeeper.emptyBook)
+
+_B = (\ __superclass_M__A_0 -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_M.A_0")) Bookkeeper.=: __superclass_M__A_0))
+"""
+        let actual = Thran.compile superClassCoreFn
         Assert.equal expected actual

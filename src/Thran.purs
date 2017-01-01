@@ -248,7 +248,10 @@ compileIdentifier (Identifier name) = do
           let newLast = mungeName last
           Array.snoc init newLast
         Maybe.Nothing -> parts
-  String.joinWith "." newParts
+  let separator = case String.uncons name of
+        Maybe.Just { head: '_', tail: _ } -> "_"
+        _ -> "."
+  String.joinWith separator newParts
 
 mungeName :: String -> String
 mungeName string = case Regex.regex "^([A-Z])" Flags.noFlags of
