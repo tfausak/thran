@@ -11,6 +11,7 @@
   "scripts": {
     "bower": "bower",
     "postinstall": "bower install",
+    "psc": "psc",
     "pulp": "pulp",
     "thran": "pulp run --",
     "test": "pulp test"
