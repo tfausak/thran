@@ -25,13 +25,17 @@ main :: Eff.Eff
   ) Unit
 main = do
   arguments <- Process.argv
-  case arguments of
-    [_, _, file] -> FS.readTextFile Encoding.UTF8 file \ result ->
-      case result of
-        Either.Right contents -> case Argonaut.jsonParser contents of
-          Either.Right json -> case Thran.compile json of
-            Either.Right haskell -> Console.log haskell
-            Either.Left message -> Exception.throw message
-          Either.Left message -> Exception.throw message
-        Either.Left error -> Exception.throwException error
+  file <- case arguments of
+    [_, _, x] -> pure x
     _ -> Exception.throw "invalid arguments"
+  FS.readTextFile Encoding.UTF8 file \ result -> do
+    contents <- case result of
+      Either.Right x -> pure x
+      Either.Left x -> Exception.throwException x
+    json <- case Argonaut.jsonParser contents of
+      Either.Right x -> pure x
+      Either.Left x -> Exception.throw x
+    haskell <- case Thran.compile json of
+      Either.Right x -> pure x
+      Either.Left x -> Exception.throw x
+    Console.log haskell
