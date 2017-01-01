@@ -9,6 +9,7 @@ import Test.Unit.Console (TESTOUTPUT)
 import Control.Monad.Eff as Eff
 import Data.Argonaut as Argonaut
 import Data.Either as Either
+import Data.String as String
 import Test.Unit as Test
 import Test.Unit.Assert as Assert
 import Test.Unit.Main as Main
@@ -45,8 +46,111 @@ main :: Eff.Eff
 main = Main.runTest do
   Test.suite "Thran" do
     Test.suite "compile" do
-      Test.test "nothing" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
+
+      test "nothing" emptyCoreFn "M" []
+        [
+        ]
+
+      test "function" functionCoreFn "M" ["identity"]
+        [ "identity = (\\ x -> x)"
+        ]
+
+      test "application" applicationCoreFn "M" ["apply"]
+        [ "apply = (\\ f -> (\\ x -> (f x)))"
+        ]
+
+      test "boolean" booleanCoreFn "M" ["boolean"]
+        [ "boolean = Prelude.False"
+        ]
+
+      test "integer" integerCoreFn "M" ["int"]
+        [ "int = 0"
+        ]
+
+      test "number" numberCoreFn "M" ["number"]
+        [ "number = 0.0"
+        ]
+
+      test "character" characterCoreFn "M" ["char"]
+        [ "char = 'a'"
+        ]
+
+      test "string" stringCoreFn "M" ["string"]
+        [ "string = \"\""
+        ]
+
+      test "array" arrayCoreFn "M" ["array"]
+        [ "array = [0, 1]"
+        ]
+
+      test "case" caseCoreFn "M" ["identity"]
+        [ "identity = (\\ x -> (case (x) of { (y) -> y }))"
+        ]
+
+      test "conditional" conditionalCoreFn "M" ["not"]
+        [ "not = (\\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))"
+        ]
+
+      test "multiple case" multipleCaseCoreFn "M" ["f"]
+        [ "f = (\\ x -> (case (x, x) of { (y, z) -> x }))"
+        ]
+
+      test "null case" nullCaseCoreFn "M" ["f"]
+        [ "f = (\\ x -> (case (x) of { (_) -> x }))"
+        ]
+
+      test "let" letCoreFn "M" ["f"]
+        [ "f = (\\ x -> (let { y = x } in y))"
+        ]
+
+      test "intra-module reference" identifierCoreFn "M" ["f", "g"]
+        [ "f = (\\ x -> x)"
+        , "g = M.f"
+        ]
+
+      test "interesting module name" moduleNameCoreFn "Aa1.Bb1" []
+        [
+        ]
+
+      test "empty record" objectCoreFn "M" ["x"]
+        [ "x = (Bookkeeper.emptyBook)"
+        ]
+
+      test "non-empty record" nonEmptyObjectCoreFn "M" ["x"]
+        [ "x = (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"a\")) Bookkeeper.=: 1)"
+        ]
+
+      test "field access" recordAccessCoreFn "M" ["f"]
+        [ "f = (\\ x -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"k\")) x))"
+        ]
+
+      test "newtype" newtypeCoreFn "M" ["_X"]
+        [ "_X = (\\ x -> x)"
+        ]
+
+      test "type class" typeClassCoreFn "M" ["_Semigroup", "append"]
+        [ "_Semigroup = (\\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"append\")) Bookkeeper.=: append))"
+        , "append = (\\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"append\")) dict))"
+        ]
+
+      test "super class" superClassCoreFn "M" ["_A", "_B"]
+        [ "_A = (Bookkeeper.emptyBook)"
+        , "_B = (\\ __superclass_M__A_0 -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"__superclass_M.A_0\")) Bookkeeper.=: __superclass_M__A_0))"
+        ]
+
+test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e
+test name corefn moduleName exports declarations =
+  Test.test name do
+    let expected = formatModule moduleName exports declarations
+    let actual = Thran.compile corefn
+    Assert.equal (Either.Right expected) actual
+
+formatModule :: String -> Array String -> Array String -> String
+formatModule name exports declarations = do
+  let formattedExports = formatExports exports
+  let formattedDeclarations = formatDeclarations declarations
+  let rawModule = String.joinWith ""
+        [ """-- Built with psc version 0.10.3.
 
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -54,485 +158,33 @@ main = Main.runTest do
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module M (
-) where
+module """
+        , name
+        , """ (
+"""
+        , formattedExports
+        , """) where
 
 import qualified Bookkeeper
 import qualified GHC.OverloadedLabels
 import qualified GHC.Prim
 import qualified Prelude
-
-
 """
-        let actual = Thran.compile emptyCoreFn
-        Assert.equal expected actual
-      Test.test "function declaration" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  identity,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-identity = (\ x -> x)
-"""
-        let actual = Thran.compile functionCoreFn
-        Assert.equal expected actual
-      Test.test "function application" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  apply,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-apply = (\ f -> (\ x -> (f x)))
-"""
-        let actual = Thran.compile applicationCoreFn
-        Assert.equal expected actual
-      Test.test "boolean literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  boolean,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-boolean = Prelude.False
-"""
-        let actual = Thran.compile booleanCoreFn
-        Assert.equal expected actual
-      Test.test "integer literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  int,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-int = 0
-"""
-        let actual = Thran.compile integerCoreFn
-        Assert.equal expected actual
-      Test.test "number literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  number,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-number = 0.0
-"""
-        let actual = Thran.compile numberCoreFn
-        Assert.equal expected actual
-      Test.test "character literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  char,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-char = 'a'
-"""
-        let actual = Thran.compile characterCoreFn
-        Assert.equal expected actual
-      Test.test "string literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  string,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-string = ""
-"""
-        let actual = Thran.compile stringCoreFn
-        Assert.equal expected actual
-      Test.test "array literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  array,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-array = [0, 1]
-"""
-        let actual = Thran.compile arrayCoreFn
-        Assert.equal expected actual
-      Test.test "case expression" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  identity,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-identity = (\ x -> (case (x) of { (y) -> y }))
-"""
-        let actual = Thran.compile caseCoreFn
-        Assert.equal expected actual
-      Test.test "conditional expression" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  not,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))
-"""
-        let actual = Thran.compile conditionalCoreFn
-        Assert.equal expected actual
-      Test.test "case expression with multiple binders" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  f,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-f = (\ x -> (case (x, x) of { (y, z) -> x }))
-"""
-        let actual = Thran.compile multipleCaseCoreFn
-        Assert.equal expected actual
-      Test.test "case expression with null binder" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  f,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-f = (\ x -> (case (x) of { (_) -> x }))
-"""
-        let actual = Thran.compile nullCaseCoreFn
-        Assert.equal expected actual
-      Test.test "let expression" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  f,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-f = (\ x -> (let { y = x } in y))
-"""
-        let actual = Thran.compile letCoreFn
-        Assert.equal expected actual
-      Test.test "intra-module identifier reference" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  f,
-  g,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-f = (\ x -> x)
-
-g = M.f
-"""
-        let actual = Thran.compile identifierCoreFn
-        Assert.equal expected actual
-      Test.test "interesting module name" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module Aa1.Bb1 (
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-
-"""
-        let actual = Thran.compile moduleNameCoreFn
-        Assert.equal expected actual
-      Test.test "object literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  x,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-x = (Bookkeeper.emptyBook)
-"""
-        let actual = Thran.compile objectCoreFn
-        Assert.equal expected actual
-      Test.test "non-empty object literal" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  x,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-x = (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "a")) Bookkeeper.=: 1)
-"""
-        let actual = Thran.compile nonEmptyObjectCoreFn
-        Assert.equal expected actual
-      Test.test "record access" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  f,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-f = (\ x -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "k")) x))
-"""
-        let actual = Thran.compile recordAccessCoreFn
-        Assert.equal expected actual
-      Test.test "newtype" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  _X,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-_X = (\ x -> x)
-"""
-        let actual = Thran.compile newtypeCoreFn
-        Assert.equal expected actual
-      Test.test "type class" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  _Semigroup,
-  append,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-_Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))
-
-append = (\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) dict))
-"""
-        let actual = Thran.compile typeClassCoreFn
-        Assert.equal expected actual
-      Test.test "superclass" do
-        let expected = Either.Right """-- Built with psc version 0.10.3.
-
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MagicHash #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
-module M (
-  _A,
-  _B,
-) where
-
-import qualified Bookkeeper
-import qualified GHC.OverloadedLabels
-import qualified GHC.Prim
-import qualified Prelude
-
-_A = (Bookkeeper.emptyBook)
-
-_B = (\ __superclass_M__A_0 -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_M.A_0")) Bookkeeper.=: __superclass_M__A_0))
-"""
-        let actual = Thran.compile superClassCoreFn
-        Assert.equal expected actual
+        , formattedDeclarations
+        ]
+  normalizeNewlines rawModule
+
+formatExports :: Array String -> String
+formatExports =
+  map (\ export -> "  " <> export <> ",\n")
+  >>> String.joinWith ""
+
+formatDeclarations :: Array String -> String
+formatDeclarations =
+  String.joinWith "\n\n"
+  >>> (_ <> "\n")
+  >>> ("\n" <> _)
+
+normalizeNewlines :: String -> String
+normalizeNewlines =
+  String.replaceAll (String.Pattern "\r\n") (String.Replacement "\n")
