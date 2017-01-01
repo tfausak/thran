@@ -13,21 +13,22 @@ $ psc --dump-corefn path-to/Example.purs
 $ npm run thran path-to/Example/corefn.json > path-to/Example.hs
 ```
 
+The compiled Haskell requires GHC 8 and [the Bookkeeper package](https://hackage.haskell.org/package/bookkeeper).
+
 ## Overview
 
 Thran is still a young project.
 So far, Thran supports:
 
 - Module export lists
-- Top-level non-recursive declarations
+- Top-level declarations
 - Array, boolean, character, function, integer, number, and string literals
 - Case expressions (`case _ of _`), including `if _ then _ else _`
 - Let expressions (`let _ in _`), including `_ where _`
 - Do notation, but you have to bring your own `bind`
 - Negative numbers, but you have to bring your own `negate`
-- Empty record literals (requires Bookkeeper)
-- Non-empty record literals
-- Record access
+- Records
+- Record field access
 - Newtypes, but they compile into functions
 - Type classes, including super classes
 
@@ -51,26 +52,76 @@ Don't use it for anything serious.
 
 This table shows how Thran compiles PureScript declarations and expressions into Haskell.
 
-PureScript | Haskell
---- | ---
-`aBoolean = true` | `aBoolean = Prelude.True`
-`anInteger = 7` | `anInteger = 7`
-`aNumber = 4.2` | `aNumber = 4.2`
-`aCharacter = 't'` | `aCharacter = 't'`
-`aString = "thran"` | `aString = "thran"`
-`anArray = [1, 2]` | `anArray = [1, 2]`
-`identity = \ x -> x` | `identity = (\ x -> x)`
-`constant x y = x` | `constant = (\ x -> (\ y -> x))`
-`apply f x = f x` | `apply = (\ f -> (\ x -> f x))`
-`empty = {}` | `empty = (Bookkeeper.emptyBook)`
-`nonEmpty = { name: "thran" }` | `(Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "name")) Bookkeeper.=: "thran")`
-`getName x = x.name` | `getName = (\ x -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "name")) x))`
-`switch x = case x of y -> y` | `(\ x -> (case (x) of { (y) -> y }))`
-`conditional x = if x then 1 else 2` | `conditional = (\ x -> (case (x) of { (Prelude.True) -> 1; (Prelude.False) -> 2 }))`
-`letIdentity = let f = identity in f` | `letIdentity = (let { f = Example.identity } in f)`
-`whereIdentity = f where f = identity` | `whereIdentity = (let { f = Example.identity } in f)`
-`newtype Tagged tag value = Tagged value` | `_Tagged = (\ x -> x)`
-`class Semigroup a where append :: a -> a -> a` | `Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))`
+| PureScript | Haskell
+--- | --- | ---
+boolean | `true` | `Prelude.True`
+integer | `7` | `7`
+number | `4.2` | `4.2`
+character | `'t'` | `'t'`
+string | `"thran"` | `"thran"`
+array | `[1, 2]` | `[1, 2]`
+function | `\ x -> x` | `(\ x -> x)`
+declaration | `const x y = x` | `const = (\ x -> (\ y -> x))`
+application | `f x` | `(f x)`
+empty record | `{}` | `(emptyBook)`
+record | `{ a: 1 }` | `(emptyBook & #a := 1)`
+field | `r.f` | `(get #f r)`
+case | `case x of y -> y` | `(case (x) of { (y) -> y })`
+conditional | `if x then 1 else 0` | `(case (x) of { (Prelude.True) -> 1; (Prelude.False) -> 2 })`
+let | `let x = 1 in x` | `(let { x = 1 } in x)`
+where | `y where y = 2` | `(let { y = 2 } in y)`
+newtype | `newtype T = T Int` | `_T = (\ x -> x)`
+type class | `class C a where f :: a` | `_C = (\ f -> (emptyBook & #f =: f))`
+
+## Records
+
+Records (and therefore type classes) are more complicated than given above.
+They use the [Bookkeeper](https://hackage.haskell.org/package/bookkeeper-0.2.1.1/docs/Bookkeeper.html) package.
+That's where the `emptyBook` and `get` identifiers come from.
+They do not actually use the [`OverloadedLabels`](https://hackage.haskell.org/package/Cabal-1.24.2.0/docs/Language-Haskell-Extension.html#v:OverloadedLabels) extension.
+Instead they directly use [`GHC.OverloadedLabels.fromLabel`](https://hackage.haskell.org/package/base-4.9.0.0/docs/GHC-OverloadedLabels.html#v:fromLabel)
+and [`GHC.Prim.proxy#`](https://hackage.haskell.org/package/ghc-prim-0.5.0.0/docs/GHC-Prim.html#v:proxy-35-).
+That allows them to use any string as a field name rather than a valid Haskell identifier.
+That's a lot to unpack, so here is a complete example. Thran compiles this PureScript:
+
+``` purescript
+{ "first-name": "Thran" }."first-name"
+```
+
+Into this Haskell, minus the formatting and annotations:
+
+``` haskell
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MagicHash #-}
+
+import qualified Bookkeeper
+import qualified GHC.OverloadedLabels
+import qualified GHC.Prim
+
+{-
+  Records are built up like this:
+    -- { a: 1, b: 2 }
+    emptyBook & #a =: 1 & #b =: 2
+
+  Fields are accessed like this:
+    -- x.a
+    get #a x
+-}
+
+(
+  Bookkeeper.get
+  -- This creates a field label. Note that `#first-name` is invalid syntax.
+  (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "first-name"))
+  (
+    Bookkeeper.emptyBook
+    Bookkeeper.&
+      (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "first-name"))
+      Bookkeeper.=:
+      "Thran"
+  )
+)
+```
 
 ## Example
 
