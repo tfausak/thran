@@ -18,7 +18,7 @@ The compiled Haskell requires GHC 8 and [the Bookkeeper package](https://hackage
 ## Overview
 
 Thran is still a young project.
-So far, Thran supports:
+So far, Thran supports (see [the reference section](#reference) or [the example section](#example)):
 
 - Module export lists
 - Top-level declarations
@@ -27,12 +27,12 @@ So far, Thran supports:
 - Let expressions (`let _ in _`), including `_ where _`
 - Do notation, but you have to bring your own `bind`
 - Negative numbers, but you have to bring your own `negate`
-- Records
+- Records (see [the records section](#records))
 - Record field access
 - Newtypes
 - Defining type classes, including super classes
 
-Currently Thran does not support:
+Currently Thran does not support (see [the to do section](#to-do)):
 
 - Module imports
 - Foreign imports
@@ -229,16 +229,13 @@ triple x = x + x + x
 data Void
 
 -- negative numbers
+negativeOne :: Int
+negativeOne = -1
 -- dummy `negate` definition to avoid pulling in the prelude
 negate :: forall a. a -> a
 negate x = x
-negativeOne :: Int
-negativeOne = -1
 
 -- do notation
--- dummy `bind` definition to avoid pulling in the prelude
-bind :: forall a b. a -> (a -> b) -> b
-bind x f = f x
 perform :: forall a b. a -> b -> b
 perform effect query = do
   effect
@@ -246,6 +243,9 @@ perform effect query = do
   effect
   _ <- query
   result
+-- dummy `bind` definition to avoid pulling in the prelude
+bind :: forall a b. a -> (a -> b) -> b
+bind x f = f x
 ```
 
 Thran generates this Haskell module:
