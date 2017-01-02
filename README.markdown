@@ -77,6 +77,7 @@ type class | `class C a where f :: a` | `_C = (\ f -> (emptyBook & #f =: f))`
 superclass | `class C <= S` | `_S = (\ x -> (emptyBook & #superclass =: x))`
 named match | `\ (x@_) -> x` | `(\ v -> (case (v) of { (x@_) -> x }))`
 unit | `data UnitT = UnitC` | `_UnitC = ()`
+adt | `data T = A | B` | `_A = (); _B = ()`
 
 ## Records
 
@@ -254,6 +255,9 @@ data UnitT = UnitC
 unit :: UnitT
 unit = UnitC
 
+-- data, multiple constructors
+data Toggle = Off | On
+
 -- negative numbers
 negativeOne :: Int
 negativeOne = -1
@@ -289,6 +293,8 @@ Thran generates this Haskell module:
 
 module Example (
   _Tagged,
+  _Off,
+  _On,
   _UnitC,
   _Monoid,
   _Semigroup,
@@ -329,6 +335,10 @@ import qualified GHC.Prim
 import qualified Prelude
 
 _UnitC = ()
+
+_Off = ()
+
+_On = ()
 
 _Tagged = (\ x -> x)
 

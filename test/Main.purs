@@ -15,6 +15,7 @@ import Test.Unit.Assert as Assert
 import Test.Unit.Main as Main
 import Thran as Thran
 
+foreign import adtCoreFn :: Argonaut.Json
 foreign import applicationCoreFn :: Argonaut.Json
 foreign import arrayCoreFn :: Argonaut.Json
 foreign import booleanCoreFn :: Argonaut.Json
@@ -172,6 +173,13 @@ main = Main.runTest do
       test "unit" unitCoreFn "M" ["_UnitC", "unit"]
         [ "_UnitC = ()"
         , "unit = M._UnitC"
+        ]
+
+      test "adt" adtCoreFn "M" ["_A", "_B", "a", "b"]
+        [ "_A = ()"
+        , "_B = ()"
+        , "b = M._B"
+        , "a = M._A"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e

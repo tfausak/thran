@@ -1,4 +1,5 @@
 module.exports = {
+  adtCoreFn: {"M":{"imports":["Prim","M"],"builtWith":"0.10.3","exports":["A","B","a","b"],"decls":[{"A":["Constructor","T","A",[]]},{"B":["Constructor","T","B",[]]},{"b":["Var","M.B"]},{"a":["Var","M.A"]}],"foreign":[]}},
   applicationCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["apply"],"decls":[{"apply":["Abs","f",["Abs","x",["App",["Var","f"],["Var","x"]]]]}],"foreign":[]}},
   arrayCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["array"],"decls":[{"array":["Literal",["ArrayLiteral",[["Literal",["IntLiteral",0]],["Literal",["IntLiteral",1]]]]]}],"foreign":[]}},
   booleanCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["boolean"],"decls":[{"boolean":["Literal",["BooleanLiteral",false]]}],"foreign":[]}},
