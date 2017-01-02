@@ -13,7 +13,7 @@ $ psc --dump-corefn path-to/Example.purs
 $ npm run thran path-to/Example/corefn.json > path-to/Example.hs
 ```
 
-The compiled Haskell requires GHC 8 and [the Bookkeeper package](https://hackage.haskell.org/package/bookkeeper).
+The compiled Haskell can be run with [Stack](https://docs.haskellstack.org/en/stable/README/).
 
 ## Overview
 

@@ -119,7 +119,8 @@ compileModule (Module module_) = do
   let exports = map compileIdentifier module_.exports
   let declarations = map compileDeclaration module_.declarations
   String.joinWith ""
-    [ "-- Built with psc version ", module_.pscVersion, ".\n"
+    [ "-- stack --resolver lts-7 exec ghci --package bookkeeper-0.2.4 --package type-level-sets-0.8.0.0\n"
+    , "-- Built with psc version ", module_.pscVersion, ".\n"
     , "\n"
     , "{-# LANGUAGE AllowAmbiguousTypes #-}\n"
     , "{-# LANGUAGE DataKinds #-}\n"
@@ -307,7 +308,7 @@ instance decodeJsonDeclaration :: Argonaut.DecodeJson Declaration where
         Either.Right (Declaration { name: Identifier name, expression })
       Maybe.Nothing -> do
         declarations <- object
-          # StrMap.toUnfoldable 
+          # StrMap.toUnfoldable
           # map (Tuple.uncurry StrMap.singleton)
           # map Argonaut.fromObject
           # Traversable.traverse Argonaut.decodeJson

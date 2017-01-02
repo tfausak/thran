@@ -173,7 +173,8 @@ formatModule name exports declarations = do
   let formattedExports = formatExports exports
   let formattedDeclarations = formatDeclarations declarations
   let rawModule = String.joinWith ""
-        [ """-- Built with psc version 0.10.3.
+        [ """-- stack --resolver lts-7 exec ghci --package bookkeeper-0.2.4 --package type-level-sets-0.8.0.0
+-- Built with psc version 0.10.3.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
