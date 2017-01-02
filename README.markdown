@@ -31,6 +31,7 @@ So far, Thran supports (see [the reference section](#reference) or [the example 
 - Record field access
 - Newtypes
 - Defining type classes, including super classes
+- Partial functions
 
 Currently Thran does not support (see [the to do section](#to-do)):
 
@@ -225,6 +226,9 @@ infix 5 append as +
 triple :: forall a. Semigroup a => a -> a
 triple x = x + x + x
 
+-- partial function
+partial 0 = 0
+
 -- data without constructors are not present in corefn
 data Void
 
@@ -281,6 +285,7 @@ module Example (
   nonEmpty,
   not,
   number,
+  partial,
   perform,
   record,
   string,
@@ -305,6 +310,8 @@ switch = (\ x -> (case (x, x) of { (0, 0) -> 0; (1, z) -> z; (y, 1) -> y; (_, _)
 string = "thran"
 
 record = (Bookkeeper.emptyBook)
+
+partial = (\ dictPartial -> (\ v -> (let { __unused = (\ dictPartial1 -> (\ _Dollar_4 -> _Dollar_4)) } in ((__unused dictPartial) (case (v) of { (0) -> 0 })))))
 
 number = 1.2
 
@@ -353,10 +360,6 @@ Anything missing from the above module probably does not work.
 Here are things that are known to not work:
 
 ``` purescript
--- TODO: generates invalid identifiers
--- partial function
-partial true = true
-
 -- TODO: adds a new binder type
 -- named pattern
 named x = case x of

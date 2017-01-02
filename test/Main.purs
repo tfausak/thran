@@ -33,6 +33,7 @@ foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
+foreign import partialCoreFn :: Argonaut.Json
 foreign import recordAccessCoreFn :: Argonaut.Json
 foreign import semigroupCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
@@ -143,6 +144,10 @@ main = Main.runTest do
         [ "_Semigroup = (\\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"append\")) Bookkeeper.=: append))"
         , "append = (\\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"append\")) dict))"
         , "triple = (\\ dictSemigroup -> (\\ x -> (((Example.append dictSemigroup) (((Example.append dictSemigroup) x) x)) x)))"
+        ]
+
+      test "partial" partialCoreFn "Example" ["partial"]
+        [ "partial = (\\ dictPartial -> (\\ v -> (let { __unused = (\\ dictPartial1 -> (\\ _Dollar_2 -> _Dollar_2)) } in ((__unused dictPartial) (case (v) of { (0) -> 0 })))))"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e
