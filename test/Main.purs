@@ -22,6 +22,7 @@ foreign import booleanCoreFn :: Argonaut.Json
 foreign import caseCoreFn :: Argonaut.Json
 foreign import characterCoreFn :: Argonaut.Json
 foreign import conditionalCoreFn :: Argonaut.Json
+foreign import dataCoreFn :: Argonaut.Json
 foreign import emptyCoreFn :: Argonaut.Json
 foreign import functionCoreFn :: Argonaut.Json
 foreign import identifierCoreFn :: Argonaut.Json
@@ -180,6 +181,11 @@ main = Main.runTest do
         , "_B = ()"
         , "b = M._B"
         , "a = M._A"
+        ]
+
+      test "data" dataCoreFn "M" ["_C", "x"]
+        [ "_C = (\\ value0 -> (value0))"
+        , "x = (M._C 0)"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e

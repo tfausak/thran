@@ -187,7 +187,13 @@ compileExpression expression = case expression of
       ]
   ConstructorExpression { typeName, name, arguments } -> case arguments of
     [] -> "()"
-    _ -> "{- TODO -}"
+    _ -> String.joinWith ""
+      [ "(\\ "
+      , String.joinWith " " arguments
+      , " -> ("
+      , String.joinWith ", " arguments
+      , "))"
+      ]
   FunctionExpression { name, body } -> do
     let compiledName = compileIdentifier name
     let compiledBody = compileExpression body

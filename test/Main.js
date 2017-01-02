@@ -6,6 +6,7 @@ module.exports = {
   caseCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["identity"],"decls":[{"identity":["Abs","x",["Case",[["Var","x"]],[[[["VarBinder","y"]],["Var","y"]]]]]}],"foreign":[]}},
   characterCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["char"],"decls":[{"char":["Literal",["CharLiteral","a"]]}],"foreign":[]}},
   conditionalCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["not"],"decls":[{"not":["Abs","x",["Case",[["Var","x"]],[[[["LiteralBinder",["BooleanLiteral",true]]],["Literal",["BooleanLiteral",false]]],[[["LiteralBinder",["BooleanLiteral",false]]],["Literal",["BooleanLiteral",true]]]]]]}],"foreign":[]}},
+  dataCoreFn: {"M":{"imports":["Prim","M"],"builtWith":"0.10.3","exports":["C","x"],"decls":[{"C":["Constructor","T","C",["value0"]]},{"x":["App",["Var","M.C"],["Literal",["IntLiteral",0]]]}],"foreign":[]}},
   emptyCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":[],"decls":[],"foreign":[]}},
   functionCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["identity"],"decls":[{"identity":["Abs","x",["Var","x"]]}],"foreign":[]}},
   identifierCoreFn: {"M":{"imports":["Prim","M"],"builtWith":"0.10.3","exports":["f","g"],"decls":[{"f":["Abs","x",["Var","x"]]},{"g":["Var","M.f"]}],"foreign":[]}},

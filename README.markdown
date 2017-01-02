@@ -33,13 +33,12 @@ So far, Thran supports (see [the reference section](#reference) or [the example 
 - Defining type classes, including super classes
 - Partial functions
 - Mutually recursive declarations
-- Unary data constructors like `Unit`
+- Data constructors
 
 Currently Thran does not support (see [the to do section](#to-do)):
 
 - Module imports
 - Foreign imports
-- Data constructors
 - Guard clauses
 
 Thran has a few limitations based on the corefn:
@@ -78,6 +77,7 @@ superclass | `class C <= S` | `_S = (\ x -> (emptyBook & #superclass =: x))`
 named match | `\ (x@_) -> x` | `(\ v -> (case (v) of { (x@_) -> x }))`
 unit | `data UnitT = UnitC` | `_UnitC = ()`
 adt | `data T = A | B` | `_A = (); _B = ()`
+data | `data Tuple a b = Tuple a b` | `_Tuple = (\ x y -> (x, y))`
 
 ## Records
 
@@ -258,6 +258,13 @@ unit = UnitC
 -- data, multiple constructors
 data Toggle = Off | On
 
+-- data with arguments
+data T a = C a
+
+-- using a constructor with arguments
+intT :: T Int
+intT = C 0
+
 -- negative numbers
 negativeOne :: Int
 negativeOne = -1
@@ -292,6 +299,7 @@ Thran generates this Haskell module:
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Example (
+  _C,
   _Tagged,
   _Off,
   _On,
@@ -308,6 +316,7 @@ module Example (
   empty,
   getName,
   identity,
+  intT,
   integer,
   letIdentity,
   mutualA,
@@ -342,6 +351,8 @@ _On = ()
 
 _Tagged = (\ x -> x)
 
+_C = (\ value0 -> (value0))
+
 _Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))
 
 _Monoid = (\ __superclass_Example__Semigroup_0 -> (\ empty -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "empty")) Bookkeeper.=: empty Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_Example.Semigroup_0")) Bookkeeper.=: __superclass_Example__Semigroup_0)))
@@ -375,6 +386,8 @@ mutualA = (\ x -> (Example.mutualB x))
 mutualB = (\ x -> (Example.mutualA x))
 
 integer = 7
+
+intT = (Example._C 0)
 
 identity = (\ x -> x)
 
@@ -434,7 +447,7 @@ import Prelude
 -- foreign imports
 foreign import CONSOLE :: *
 
--- TODO: constructor arguments
+-- TODO: these should work
 -- data, constructor with arguments
 data Tuple a b = Tuple a b
 -- data, algebraic data type
