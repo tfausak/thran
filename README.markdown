@@ -74,6 +74,7 @@ where | `y where y = 2` | `(let { y = 2 } in y)`
 newtype | `newtype T = T Int` | `_T = (\ x -> x)`
 type class | `class C a where f :: a` | `_C = (\ f -> (emptyBook & #f =: f))`
 superclass | `class C <= S` | `_S = (\ x -> (emptyBook & #superclass =: x))`
+named match | `\ (x@_) -> x` | `(\ v -> (case (v) of { (x@_) -> x }))`
 
 ## Records
 
@@ -229,6 +230,10 @@ triple x = x + x + x
 -- partial function
 partial 0 = 0
 
+-- named pattern
+named x = case x of
+  y@_ -> y
+
 -- data without constructors are not present in corefn
 data Void
 
@@ -280,6 +285,7 @@ module Example (
   identity,
   integer,
   letIdentity,
+  named,
   negate,
   negativeOne,
   nonEmpty,
@@ -323,6 +329,8 @@ negate = (\ x -> x)
 
 negativeOne = (Example.negate 1)
 
+named = (\ x -> (case (x) of { (y@_) -> y }))
+
 integer = 7
 
 identity = (\ x -> x)
@@ -360,11 +368,6 @@ Anything missing from the above module probably does not work.
 Here are things that are known to not work:
 
 ``` purescript
--- TODO: adds a new binder type
--- named pattern
-named x = case x of
-  y@_ -> y
-
 -- TODO: changes shape of expression
 -- guard
 guard x | true = x

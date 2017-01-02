@@ -28,6 +28,7 @@ foreign import integerCoreFn :: Argonaut.Json
 foreign import letCoreFn :: Argonaut.Json
 foreign import moduleNameCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
+foreign import namedCoreFn :: Argonaut.Json
 foreign import newtypeCoreFn :: Argonaut.Json
 foreign import nonEmptyObjectCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
@@ -148,6 +149,10 @@ main = Main.runTest do
 
       test "partial" partialCoreFn "Example" ["partial"]
         [ "partial = (\\ dictPartial -> (\\ v -> (let { __unused = (\\ dictPartial1 -> (\\ _Dollar_2 -> _Dollar_2)) } in ((__unused dictPartial) (case (v) of { (0) -> 0 })))))"
+        ]
+
+      test "named" namedCoreFn "Example" ["named"]
+        [ "named = (\\ x -> (case (x) of { (y@_) -> y }))"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e

@@ -71,6 +71,10 @@ data Binder
   = LiteralBinder
     { literal :: Literal
     }
+  | NamedBinder
+    { name :: Identifier
+    , rest :: Binder
+    }
   | NullBinder
   | VariableBinder
     { name :: Identifier
@@ -211,6 +215,7 @@ compileAlternative (Alternative alternative) = do
 compileBinder :: Binder -> String
 compileBinder binder = case binder of
   LiteralBinder { literal } -> compileLiteral literal
+  NamedBinder { name, rest } -> String.joinWith "@" [compileIdentifier name, compileBinder rest]
   NullBinder -> "_"
   VariableBinder { name } -> compileIdentifier name
 
@@ -390,6 +395,12 @@ instance decodeJsonBinder :: Argonaut.DecodeJson Binder where
         { head, tail } <- toEither "binder array empty" (Array.uncons array)
         kind <- toEither "binder kind not string" (Argonaut.toString head)
         case kind of
+          "NamedBinder" -> case tail of
+            [rawName, rawRest] -> do
+              name <- Argonaut.decodeJson rawName
+              rest <- Argonaut.decodeJson rawRest
+              Either.Right (NamedBinder { name, rest })
+            _ -> Either.Left "invalid named binder"
           "LiteralBinder" -> case tail of
             [element] -> do
               literal <- Argonaut.decodeJson element
