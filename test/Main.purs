@@ -27,6 +27,7 @@ foreign import integerCoreFn :: Argonaut.Json
 foreign import letCoreFn :: Argonaut.Json
 foreign import moduleNameCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
+foreign import mutualCoreFn :: Argonaut.Json
 foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
@@ -535,4 +536,29 @@ _A = (Bookkeeper.emptyBook)
 _B = (\ __superclass_M__A_0 -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_M.A_0")) Bookkeeper.=: __superclass_M__A_0))
 """
         let actual = Thran.compile superClassCoreFn
+        Assert.equal expected actual
+      Test.test "mutual" do
+        let expected = Either.Right """-- Built with psc version 0.10.3.
+
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
+module M (
+  f,
+  g,
+) where
+
+import qualified Bookkeeper
+import qualified GHC.OverloadedLabels
+import qualified GHC.Prim
+import qualified Prelude
+
+g = (\ x -> (M.f x))
+
+f = (\ x -> (M.g x))
+"""
+        let actual = Thran.compile mutualCoreFn
         Assert.equal expected actual

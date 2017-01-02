@@ -31,12 +31,12 @@ So far, Thran supports:
 - Record field access
 - Newtypes
 - Defining type classes, including super classes
+- Recursive declarations
 
 Currently Thran does not support:
 
 - Module imports
 - Foreign imports
-- Recursive declarations
 - Data constructors
 - Guard clauses
 - Using type classes
