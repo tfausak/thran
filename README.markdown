@@ -127,59 +127,86 @@ import qualified GHC.Prim
 
 ## Example
 
-Given the following PureScript module:
+The following module shows everything that Thran knows how to compile.
+Given this:
 
 ``` purescript
 module Example where
 
 -- function with a single argument
+identity :: forall a. a -> a
 identity = \ x -> x
 
 -- function with multiple arguments
+constant :: forall a b. a -> b -> a
 constant x y = x
 
 -- function application
+apply :: forall a b. (a -> b) -> a -> b
 apply f x = f x
 
 -- Boolean literal
+boolean :: Boolean
 boolean = true
 
 -- Int literal
+integer :: Int
 integer = 7
 
 -- Number literal
+number :: Number
 number = 1.2
 
 -- Char literal
+character :: Char
 character = 't'
 
 -- String literal
+string :: String
 string = "thran"
 
 -- Array literal
+array :: Array Int
 array = [1, 2, 3]
 
 -- empty Record literal
-empty = {}
+record :: {}
+record = {}
 
 -- non-empty Record literal
+nonEmpty :: { name :: String }
 nonEmpty = { name: "thran" }
 
 -- record access
+getName :: { name :: String } -> String
 getName person = person.name
 
 -- case expression
-switch x = case x of
-  y -> y
+switch :: Int -> Int
+switch x = case x, x of
+  0, 0 -> 0
+  1, z -> z
+  y, 1 -> y
+  _, _ -> x
 
 -- conditional expression
-not x = if x then false else true
+not :: Boolean -> Boolean
+not x = if x
+  then false
+  else true
 
 -- "let ... in ..." expression
-letIdentity = let f = identity in f
+letIdentity :: forall a. a -> a
+letIdentity = let
+  f = identity
+  g = identity
+  in g f
 
 -- "... where ..." expression
-whereIdentity = f where f = identity
+whereIdentity :: forall a. a -> a
+whereIdentity = g f where
+  g = identity
+  f = identity
 
 -- newtype
 newtype Tagged tag value = Tagged value
@@ -187,6 +214,35 @@ newtype Tagged tag value = Tagged value
 -- type class
 class Semigroup a where
   append :: a -> a -> a
+
+-- super class
+class Semigroup a <= Monoid a where
+  empty :: a
+
+-- operators are not present in corefn
+infix 5 append as +
+
+-- data without constructors are not present in corefn
+data Void
+
+-- negative numbers
+-- dummy `negate` definition to avoid pulling in the prelude
+negate :: forall a. a -> a
+negate x = x
+negativeOne :: Int
+negativeOne = -1
+
+-- do notation
+-- dummy `bind` definition to avoid pulling in the prelude
+bind :: forall a b. a -> (a -> b) -> b
+bind x f = f x
+perform :: forall a b. a -> b -> b
+perform effect query = do
+  effect
+  result <- query
+  effect
+  _ <- query
+  result
 ```
 
 Thran generates this Haskell module:
@@ -202,10 +258,12 @@ Thran generates this Haskell module:
 
 module Example (
   _Tagged,
+  _Monoid,
   _Semigroup,
   append,
   apply,
   array,
+  bind,
   boolean,
   character,
   constant,
@@ -214,9 +272,13 @@ module Example (
   identity,
   integer,
   letIdentity,
+  negate,
+  negativeOne,
   nonEmpty,
   not,
   number,
+  perform,
+  record,
   string,
   switch,
   whereIdentity,
@@ -231,9 +293,13 @@ _Tagged = (\ x -> x)
 
 _Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))
 
-switch = (\ x -> (case (x) of { (y) -> y }))
+_Monoid = (\ __superclass_Example__Semigroup_0 -> (\ empty -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "empty")) Bookkeeper.=: empty Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_Example.Semigroup_0")) Bookkeeper.=: __superclass_Example__Semigroup_0)))
+
+switch = (\ x -> (case (x, x) of { (0, 0) -> 0; (1, z) -> z; (y, 1) -> y; (_, _) -> x }))
 
 string = "thran"
+
+record = (Bookkeeper.emptyBook)
 
 number = 1.2
 
@@ -241,17 +307,21 @@ not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) ->
 
 nonEmpty = (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "name")) Bookkeeper.=: "thran")
 
+negate = (\ x -> x)
+
+negativeOne = (Example.negate 1)
+
 integer = 7
 
 identity = (\ x -> x)
 
-letIdentity = (let { f = Example.identity } in f)
+letIdentity = (let { g = Example.identity; f = Example.identity } in (g f))
 
-whereIdentity = (let { f = Example.identity } in f)
+whereIdentity = (let { g = Example.identity; f = Example.identity } in (g f))
 
 getName = (\ person -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "name")) person))
 
-empty = (Bookkeeper.emptyBook)
+empty = (\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "empty")) dict))
 
 constant = (\ x -> (\ y -> x))
 
@@ -259,9 +329,74 @@ character = 't'
 
 boolean = Prelude.True
 
+bind = (\ x -> (\ f -> (f x)))
+
+perform = (\ effect -> (\ query -> ((Example.bind effect) (\ __unused -> ((Example.bind query) (\ v -> (case (v) of { (result) -> ((Example.bind effect) (\ __unused -> ((Example.bind query) (\ v1 -> (case (v1) of { (_) -> result }))))) })))))))
+
 array = [1, 2, 3]
 
 apply = (\ f -> (\ x -> (f x)))
 
 append = (\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) dict))
+```
+
+## To do
+
+Anything missing from the above module probably does not work.
+Here are things that are known to not work:
+
+``` purescript
+-- TODO: type inference fails
+-- using a type class
+appendEmpty :: forall a. (Monoid a, Semigroup a) => a -> a
+appendEmpty x = x + empty
+
+-- TODO: generates invalid identifiers
+-- partial function
+partial true = true
+
+-- TODO: adds a new binder type
+-- named pattern
+named x = case x of
+  y@_ -> y
+
+-- TODO: changes shape of expression
+-- guard
+guard x | true = x
+
+-- TODO: changes shape of expression
+-- record punning
+pun { joke } = joke
+
+-- TODO: new expresison type
+-- array binder
+useless :: forall a. Array a -> Array a
+useless xs = case xs of
+  [x] -> [x]
+  _ -> xs
+
+-- TODO: changes shape of declaration
+-- mutually recursive declarations
+mutualA x = mutualB x
+mutualB x = mutualA x
+
+-- TODO: doesn't generate anything
+-- module imports
+import Prelude
+
+-- TODO: doesn't generate anything
+-- foreign imports
+foreign import CONSOLE :: *
+
+-- TODO: new expression type
+-- data, one constructor
+data Unit = Unit
+-- data, constructor with arguments
+data Tuple a b = Tuple a b
+-- data, algebraic data type
+data Maybe a = Nothing | Just a
+-- data, record data type
+data Point a = Point { x :: a, y :: a }
+-- data, recursive data type
+data List a = Nil | Cons a (List a)
 ```
