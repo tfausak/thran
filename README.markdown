@@ -32,12 +32,12 @@ So far, Thran supports (see [the reference section](#reference) or [the example 
 - Newtypes
 - Defining type classes, including super classes
 - Partial functions
+- Mutually recursive declarations
 
 Currently Thran does not support (see [the to do section](#to-do)):
 
 - Module imports
 - Foreign imports
-- Recursive declarations
 - Data constructors
 - Guard clauses
 
@@ -234,6 +234,10 @@ partial 0 = 0
 named x = case x of
   y@_ -> y
 
+-- mutually recursive declarations
+mutualA x = mutualB x
+mutualB x = mutualA x
+
 -- data without constructors are not present in corefn
 data Void
 
@@ -285,6 +289,8 @@ module Example (
   identity,
   integer,
   letIdentity,
+  mutualA,
+  mutualB,
   named,
   negate,
   negativeOne,
@@ -330,6 +336,10 @@ negate = (\ x -> x)
 negativeOne = (Example.negate 1)
 
 named = (\ x -> (case (x) of { (y@_) -> y }))
+
+mutualA = (\ x -> (Example.mutualB x))
+
+mutualB = (\ x -> (Example.mutualA x))
 
 integer = 7
 
@@ -382,11 +392,6 @@ useless :: forall a. Array a -> Array a
 useless xs = case xs of
   [x] -> [x]
   _ -> xs
-
--- TODO: changes shape of declaration
--- mutually recursive declarations
-mutualA x = mutualB x
-mutualB x = mutualA x
 
 -- TODO: doesn't generate anything
 -- module imports

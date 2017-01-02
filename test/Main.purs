@@ -28,6 +28,7 @@ foreign import integerCoreFn :: Argonaut.Json
 foreign import letCoreFn :: Argonaut.Json
 foreign import moduleNameCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
+foreign import mutualCoreFn :: Argonaut.Json
 foreign import namedCoreFn :: Argonaut.Json
 foreign import newtypeCoreFn :: Argonaut.Json
 foreign import nonEmptyObjectCoreFn :: Argonaut.Json
@@ -153,6 +154,11 @@ main = Main.runTest do
 
       test "named" namedCoreFn "Example" ["named"]
         [ "named = (\\ x -> (case (x) of { (y@_) -> y }))"
+        ]
+
+      test "mutual" mutualCoreFn "M" ["f", "g"]
+        [ "g = (\\ x -> (M.f x))"
+        , "f = (\\ x -> (M.g x))"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e

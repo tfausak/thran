@@ -29,10 +29,14 @@ newtype ModuleName = ModuleName String
 
 newtype Identifier = Identifier String
 
-data Declaration = Declaration
-  { name :: Identifier
-  , expression :: Expression
-  }
+data Declaration
+  = Declaration
+    { name :: Identifier
+    , expression :: Expression
+    }
+  | Declarations
+    { declarations :: Array Declaration
+    }
 
 data Expression
   = AccessorExpression
@@ -141,10 +145,13 @@ compileModuleName :: ModuleName -> String
 compileModuleName (ModuleName name) = name
 
 compileDeclaration :: Declaration -> String
-compileDeclaration (Declaration declaration) = do
-  let name = compileIdentifier declaration.name
-  let expression = compileExpression declaration.expression
-  String.joinWith "" [name, " = ", expression]
+compileDeclaration declaration = case declaration of
+  Declaration { name, expression } -> do
+    let compiledName = compileIdentifier name
+    let compiledExpression = compileExpression expression
+    String.joinWith " = " [compiledName, compiledExpression]
+  Declarations { declarations } -> String.joinWith "\n\n"
+    (map compileDeclaration declarations)
 
 compileExpression :: Expression -> String
 compileExpression expression = case expression of
@@ -294,9 +301,17 @@ instance decodeJsonIdentifier :: Argonaut.DecodeJson Identifier where
 instance decodeJsonDeclaration :: Argonaut.DecodeJson Declaration where
   decodeJson json = do
     object <- toEither "declaration not object" (Argonaut.toObject json)
-    Tuple.Tuple name expressionJson <- toEither "declaration object not singleton" (fromSingleton object)
-    expression <- Argonaut.decodeJson expressionJson
-    Either.Right (Declaration { name: Identifier name, expression })
+    case fromSingleton object of
+      Maybe.Just (Tuple.Tuple name expressionJson) -> do
+        expression <- Argonaut.decodeJson expressionJson
+        Either.Right (Declaration { name: Identifier name, expression })
+      Maybe.Nothing -> do
+        declarations <- object
+          # StrMap.toUnfoldable 
+          # map (Tuple.uncurry StrMap.singleton)
+          # map Argonaut.fromObject
+          # Traversable.traverse Argonaut.decodeJson
+        Either.Right (Declarations { declarations })
 
 instance decodeJsonExpression :: Argonaut.DecodeJson Expression where
   decodeJson json = do
