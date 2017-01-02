@@ -33,6 +33,7 @@ So far, Thran supports (see [the reference section](#reference) or [the example 
 - Defining type classes, including super classes
 - Partial functions
 - Mutually recursive declarations
+- Unary data constructors like `Unit`
 
 Currently Thran does not support (see [the to do section](#to-do)):
 
@@ -75,6 +76,7 @@ newtype | `newtype T = T Int` | `_T = (\ x -> x)`
 type class | `class C a where f :: a` | `_C = (\ f -> (emptyBook & #f =: f))`
 superclass | `class C <= S` | `_S = (\ x -> (emptyBook & #superclass =: x))`
 named match | `\ (x@_) -> x` | `(\ v -> (case (v) of { (x@_) -> x }))`
+unit | `data UnitT = UnitC` | `_UnitC = ()`
 
 ## Records
 
@@ -245,6 +247,13 @@ mutualB x = mutualA x
 -- data without constructors are not present in corefn
 data Void
 
+-- data, one constructor
+data UnitT = UnitC
+
+-- using a constructor
+unit :: UnitT
+unit = UnitC
+
 -- negative numbers
 negativeOne :: Int
 negativeOne = -1
@@ -280,6 +289,7 @@ Thran generates this Haskell module:
 
 module Example (
   _Tagged,
+  _UnitC,
   _Monoid,
   _Semigroup,
   append,
@@ -308,6 +318,7 @@ module Example (
   string,
   switch,
   triple,
+  unit,
   whereIdentity,
   semigroupInt,
 ) where
@@ -317,11 +328,15 @@ import qualified GHC.OverloadedLabels
 import qualified GHC.Prim
 import qualified Prelude
 
+_UnitC = ()
+
 _Tagged = (\ x -> x)
 
 _Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))
 
 _Monoid = (\ __superclass_Example__Semigroup_0 -> (\ empty -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "empty")) Bookkeeper.=: empty Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_Example.Semigroup_0")) Bookkeeper.=: __superclass_Example__Semigroup_0)))
+
+unit = Example._UnitC
 
 switch = (\ x -> (case (x, x) of { (0, 0) -> 0; (1, z) -> z; (y, 1) -> y; (_, _) -> x }))
 
@@ -409,9 +424,7 @@ import Prelude
 -- foreign imports
 foreign import CONSOLE :: *
 
--- TODO: new expression type
--- data, one constructor
-data Unit = Unit
+-- TODO: constructor arguments
 -- data, constructor with arguments
 data Tuple a b = Tuple a b
 -- data, algebraic data type

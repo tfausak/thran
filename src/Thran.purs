@@ -51,6 +51,11 @@ data Expression
     { expressions :: Array Expression
     , alternatives :: Array Alternative
     }
+  | ConstructorExpression
+    { typeName :: String
+    , name :: String
+    , arguments :: Array String
+    }
   | FunctionExpression
     { name :: Identifier
     , body :: Expression
@@ -180,6 +185,9 @@ compileExpression expression = case expression of
       , String.joinWith "; " compiledAlternatives
       , " })"
       ]
+  ConstructorExpression { typeName, name, arguments } -> case arguments of
+    [] -> "()"
+    _ -> "{- TODO -}"
   FunctionExpression { name, body } -> do
     let compiledName = compileIdentifier name
     let compiledBody = compileExpression body
@@ -324,6 +332,7 @@ instance decodeJsonExpression :: Argonaut.DecodeJson Expression where
       "Accessor" -> decodeAccessorExpression tail
       "App" -> decodeApplicationExpression tail
       "Case" -> decodeCaseExpression tail
+      "Constructor" -> decodeConstructorExpression tail
       "Let" -> decodeLetExpression tail
       "Literal" -> decodeLiteralExpression tail
       "Var" -> decodeVariableExpression tail
@@ -355,6 +364,15 @@ decodeCaseExpression array = do
       alternatives <- Argonaut.decodeJson second
       Either.Right (CaseExpression { expressions, alternatives })
     _ -> Either.Left "invalid case"
+
+decodeConstructorExpression :: Array Argonaut.Json -> Either.Either String Expression
+decodeConstructorExpression array = case array of
+  [rawTypeName, rawName, rawArguments] -> do
+    typeName <- Argonaut.decodeJson rawTypeName
+    name <- Argonaut.decodeJson rawName
+    arguments <- Argonaut.decodeJson rawArguments
+    Either.Right (ConstructorExpression { typeName, name, arguments })
+  _ -> Either.Left "invalid constructor"
 
 decodeFunctionExpression :: Array Argonaut.Json -> Either.Either String Expression
 decodeFunctionExpression array = do

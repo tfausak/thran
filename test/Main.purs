@@ -42,6 +42,7 @@ foreign import semigroupCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
 foreign import superClassCoreFn :: Argonaut.Json
 foreign import typeClassCoreFn :: Argonaut.Json
+foreign import unitCoreFn :: Argonaut.Json
 
 main :: Eff.Eff
   ( console :: CONSOLE
@@ -166,6 +167,11 @@ main = Main.runTest do
         [ "_C = (\\ m -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"m\")) Bookkeeper.=: m))"
         , "m = (\\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"m\")) dict))"
         , "cInt = (Example._C 0)"
+        ]
+
+      test "unit" unitCoreFn "M" ["_UnitC", "unit"]
+        [ "_UnitC = ()"
+        , "unit = M._UnitC"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e

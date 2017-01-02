@@ -26,4 +26,5 @@ module.exports = {
   stringCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["string"],"decls":[{"string":["Literal",["StringLiteral",""]]}],"foreign":[]}},
   superClassCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["A","B"],"decls":[{"A":["Literal",["ObjectLiteral",{}]]},{"B":["Abs","__superclass_M.A_0",["Literal",["ObjectLiteral",{"__superclass_M.A_0":["Var","__superclass_M.A_0"]}]]]}],"foreign":[]}},
   typeClassCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["Semigroup","append"],"decls":[{"Semigroup":["Abs","append",["Literal",["ObjectLiteral",{"append":["Var","append"]}]]]},{"append":["Abs","dict",["Accessor","append",["Var","dict"]]]}],"foreign":[]}},
+  unitCoreFn: {"M":{"imports":["Prim","M"],"builtWith":"0.10.3","exports":["UnitC","unit"],"decls":[{"UnitC":["Constructor","UnitT","UnitC",[]]},{"unit":["Var","M.UnitC"]}],"foreign":[]}},
 }
