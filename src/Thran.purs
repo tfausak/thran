@@ -113,6 +113,7 @@ compileModule (Module module_) = do
   String.joinWith ""
     [ "-- Built with psc version ", module_.pscVersion, ".\n"
     , "\n"
+    , "{-# LANGUAGE AllowAmbiguousTypes #-}\n"
     , "{-# LANGUAGE DataKinds #-}\n"
     , "{-# LANGUAGE FlexibleContexts #-}\n"
     , "{-# LANGUAGE MagicHash #-}\n"

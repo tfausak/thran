@@ -34,6 +34,7 @@ foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
 foreign import recordAccessCoreFn :: Argonaut.Json
+foreign import semigroupCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
 foreign import superClassCoreFn :: Argonaut.Json
 foreign import typeClassCoreFn :: Argonaut.Json
@@ -138,6 +139,12 @@ main = Main.runTest do
         , "_B = (\\ __superclass_M__A_0 -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"__superclass_M.A_0\")) Bookkeeper.=: __superclass_M__A_0))"
         ]
 
+      test "using type class" semigroupCoreFn "Example" ["_Semigroup", "append", "triple"]
+        [ "_Semigroup = (\\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"append\")) Bookkeeper.=: append))"
+        , "append = (\\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"append\")) dict))"
+        , "triple = (\\ dictSemigroup -> (\\ x -> (((Example.append dictSemigroup) (((Example.append dictSemigroup) x) x)) x)))"
+        ]
+
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e
 test name corefn moduleName exports declarations =
   Test.test name do
@@ -152,6 +159,7 @@ formatModule name exports declarations = do
   let rawModule = String.joinWith ""
         [ """-- Built with psc version 0.10.3.
 
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}

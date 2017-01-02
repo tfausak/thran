@@ -222,6 +222,10 @@ class Semigroup a <= Monoid a where
 -- operators are not present in corefn
 infix 5 append as +
 
+-- using a type class
+triple :: forall a. Semigroup a => a -> a
+triple x = x + x + x
+
 -- data without constructors are not present in corefn
 data Void
 
@@ -250,6 +254,7 @@ Thran generates this Haskell module:
 ``` haskell
 -- Built with psc version 0.10.3.
 
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
@@ -281,6 +286,7 @@ module Example (
   record,
   string,
   switch,
+  triple,
   whereIdentity,
 ) where
 
@@ -338,6 +344,8 @@ array = [1, 2, 3]
 apply = (\ f -> (\ x -> (f x)))
 
 append = (\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) dict))
+
+triple = (\ dictSemigroup -> (\ x -> (((Example.append dictSemigroup) (((Example.append dictSemigroup) x) x)) x)))
 ```
 
 ## To do
@@ -346,11 +354,6 @@ Anything missing from the above module probably does not work.
 Here are things that are known to not work:
 
 ``` purescript
--- TODO: type inference fails
--- using a type class
-appendEmpty :: forall a. (Monoid a, Semigroup a) => a -> a
-appendEmpty x = x + empty
-
 -- TODO: generates invalid identifiers
 -- partial function
 partial true = true
