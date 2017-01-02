@@ -8,6 +8,7 @@ module.exports = {
   emptyCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":[],"decls":[],"foreign":[]}},
   functionCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["identity"],"decls":[{"identity":["Abs","x",["Var","x"]]}],"foreign":[]}},
   identifierCoreFn: {"M":{"imports":["Prim","M"],"builtWith":"0.10.3","exports":["f","g"],"decls":[{"f":["Abs","x",["Var","x"]]},{"g":["Var","M.f"]}],"foreign":[]}},
+  instanceCoreFn: {"Example":{"imports":["Prim","Example"],"builtWith":"0.10.3","exports":["C","m","cInt"],"decls":[{"C":["Abs","m",["Literal",["ObjectLiteral",{"m":["Var","m"]}]]]},{"m":["Abs","dict",["Accessor","m",["Var","dict"]]]},{"cInt":["App",["Var","Example.C"],["Literal",["IntLiteral",0]]]}],"foreign":[]}},
   integerCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["int"],"decls":[{"int":["Literal",["IntLiteral",0]]}],"foreign":[]}},
   letCoreFn: {"M":{"imports":["Prim"],"builtWith":"0.10.3","exports":["f"],"decls":[{"f":["Abs","x",["Let",[{"y":["Var","x"]}],["Var","y"]]]}],"foreign":[]}},
   moduleNameCoreFn: {"Aa1.Bb1":{"imports":["Prim"],"builtWith":"0.10.3","exports":[],"decls":[],"foreign":[]}},

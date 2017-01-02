@@ -24,6 +24,7 @@ foreign import conditionalCoreFn :: Argonaut.Json
 foreign import emptyCoreFn :: Argonaut.Json
 foreign import functionCoreFn :: Argonaut.Json
 foreign import identifierCoreFn :: Argonaut.Json
+foreign import instanceCoreFn :: Argonaut.Json
 foreign import integerCoreFn :: Argonaut.Json
 foreign import letCoreFn :: Argonaut.Json
 foreign import moduleNameCoreFn :: Argonaut.Json
@@ -159,6 +160,12 @@ main = Main.runTest do
       test "mutual" mutualCoreFn "M" ["f", "g"]
         [ "g = (\\ x -> (M.f x))"
         , "f = (\\ x -> (M.g x))"
+        ]
+
+      test "instance" instanceCoreFn "Example" ["_C", "m", "cInt"]
+        [ "_C = (\\ m -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"m\")) Bookkeeper.=: m))"
+        , "m = (\\ dict -> (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"m\")) dict))"
+        , "cInt = (Example._C 0)"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e

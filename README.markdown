@@ -220,6 +220,10 @@ class Semigroup a where
 class Semigroup a <= Monoid a where
   empty :: a
 
+-- type class instance
+instance semigroupInt :: Semigroup Int where
+  append _ _ = 0
+
 -- operators are not present in corefn
 infix 5 append as +
 
@@ -264,6 +268,7 @@ bind x f = f x
 Thran generates this Haskell module:
 
 ``` haskell
+-- stack --resolver lts-7 exec ghci --package bookkeeper-0.2.4 --package type-level-sets-0.8.0.0
 -- Built with psc version 0.10.3.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
@@ -304,6 +309,7 @@ module Example (
   switch,
   triple,
   whereIdentity,
+  semigroupInt,
 ) where
 
 import qualified Bookkeeper
@@ -321,9 +327,11 @@ switch = (\ x -> (case (x, x) of { (0, 0) -> 0; (1, z) -> z; (y, 1) -> y; (_, _)
 
 string = "thran"
 
+semigroupInt = (Example._Semigroup (\ v -> (\ v1 -> 0)))
+
 record = (Bookkeeper.emptyBook)
 
-partial = (\ dictPartial -> (\ v -> (let { __unused = (\ dictPartial1 -> (\ _Dollar_4 -> _Dollar_4)) } in ((__unused dictPartial) (case (v) of { (0) -> 0 })))))
+partial = (\ dictPartial -> (\ v -> (let { __unused = (\ dictPartial1 -> (\ _Dollar_6 -> _Dollar_6)) } in ((__unused dictPartial) (case (v) of { (0) -> 0 })))))
 
 number = 1.2
 
