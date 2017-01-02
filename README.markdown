@@ -39,7 +39,6 @@ Currently Thran does not support:
 - Recursive declarations
 - Data constructors
 - Guard clauses
-- Using type classes
 
 Thran has a few limitations based on the corefn:
 
