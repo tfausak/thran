@@ -265,6 +265,37 @@ data T a = C a
 intT :: T Int
 intT = C 0
 
+-- constructor with multiple arguments
+data Tuple a b = Tuple a b
+
+-- using a constructor with multiple arguments
+tuple :: forall a b. a -> b -> Tuple a b
+tuple x y = Tuple x y
+
+-- adt with an argument
+data Maybe a = Nothing | Just a
+
+-- using an adt with an argument
+just :: forall a. a -> Maybe a
+just x = Just x
+
+-- adt with multiple arguments
+data Either a b = Left a | Right b
+
+-- using an adt with multiple arguments
+right :: forall a b. b -> Either a b
+right x = Right x
+
+-- recursive adt
+data List a = Nil | Cons a (List a)
+
+-- type operators are not present in the corefn
+infixr 6 Cons as :
+
+-- using a recursive adt
+numbers :: List Int
+numbers = 1 : 2 : Nil
+
 -- negative numbers
 negativeOne :: Int
 negativeOne = -1
@@ -299,10 +330,17 @@ Thran generates this Haskell module:
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Example (
+  _Left,
+  _Right,
+  _Nil,
+  _Cons,
+  _Nothing,
+  _Just,
   _C,
   _Tagged,
   _Off,
   _On,
+  _Tuple,
   _UnitC,
   _Monoid,
   _Semigroup,
@@ -318,6 +356,7 @@ module Example (
   identity,
   intT,
   integer,
+  just,
   letIdentity,
   mutualA,
   mutualB,
@@ -327,12 +366,15 @@ module Example (
   nonEmpty,
   not,
   number,
+  numbers,
   partial,
   perform,
   record,
+  right,
   string,
   switch,
   triple,
+  tuple,
   unit,
   whereIdentity,
   semigroupInt,
@@ -345,6 +387,8 @@ import qualified Prelude
 
 _UnitC = ()
 
+_Tuple = (\ value0 value1 -> (value0, value1))
+
 _Off = ()
 
 _On = ()
@@ -353,11 +397,25 @@ _Tagged = (\ x -> x)
 
 _C = (\ value0 -> (value0))
 
+_Nothing = ()
+
+_Just = (\ value0 -> (value0))
+
+_Nil = ()
+
+_Cons = (\ value0 value1 -> (value0, value1))
+
+_Left = (\ value0 -> (value0))
+
+_Right = (\ value0 -> (value0))
+
 _Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))
 
 _Monoid = (\ __superclass_Example__Semigroup_0 -> (\ empty -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "empty")) Bookkeeper.=: empty Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_Example.Semigroup_0")) Bookkeeper.=: __superclass_Example__Semigroup_0)))
 
 unit = Example._UnitC
+
+tuple = (\ x -> (\ y -> ((Example._Tuple x) y)))
 
 switch = (\ x -> (case (x, x) of { (0, 0) -> 0; (1, z) -> z; (y, 1) -> y; (_, _) -> x }))
 
@@ -365,9 +423,13 @@ string = "thran"
 
 semigroupInt = (Example._Semigroup (\ v -> (\ v1 -> 0)))
 
+right = (\ x -> (Example._Right x))
+
 record = (Bookkeeper.emptyBook)
 
 partial = (\ dictPartial -> (\ v -> (let { __unused = (\ dictPartial1 -> (\ _Dollar_6 -> _Dollar_6)) } in ((__unused dictPartial) (case (v) of { (0) -> 0 })))))
+
+numbers = ((Example._Cons 1) ((Example._Cons 2) Example._Nil))
 
 number = 1.2
 
@@ -384,6 +446,8 @@ named = (\ x -> (case (x) of { (y@_) -> y }))
 mutualA = (\ x -> (Example.mutualB x))
 
 mutualB = (\ x -> (Example.mutualA x))
+
+just = (\ x -> (Example._Just x))
 
 integer = 7
 
@@ -429,7 +493,7 @@ Here are things that are known to not work:
 guard x | true = x
 
 -- TODO: changes shape of expression
--- record punning
+-- record binding/punning
 pun { joke } = joke
 
 -- TODO: new expresison type
@@ -439,6 +503,13 @@ useless xs = case xs of
   [x] -> [x]
   _ -> xs
 
+-- TODO
+-- constructor binding
+isJust :: forall a. Maybe a -> Boolean
+isJust x = case x of
+  Nothing -> false
+  Just _ -> true
+
 -- TODO: doesn't generate anything
 -- module imports
 import Prelude
@@ -446,14 +517,4 @@ import Prelude
 -- TODO: doesn't generate anything
 -- foreign imports
 foreign import CONSOLE :: *
-
--- TODO: these should work
--- data, constructor with arguments
-data Tuple a b = Tuple a b
--- data, algebraic data type
-data Maybe a = Nothing | Just a
--- data, record data type
-data Point a = Point { x :: a, y :: a }
--- data, recursive data type
-data List a = Nil | Cons a (List a)
 ```

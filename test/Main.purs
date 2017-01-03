@@ -29,6 +29,8 @@ foreign import identifierCoreFn :: Argonaut.Json
 foreign import instanceCoreFn :: Argonaut.Json
 foreign import integerCoreFn :: Argonaut.Json
 foreign import letCoreFn :: Argonaut.Json
+foreign import listCoreFn :: Argonaut.Json
+foreign import maybeCoreFn :: Argonaut.Json
 foreign import moduleNameCoreFn :: Argonaut.Json
 foreign import multipleCaseCoreFn :: Argonaut.Json
 foreign import mutualCoreFn :: Argonaut.Json
@@ -39,10 +41,12 @@ foreign import nullCaseCoreFn :: Argonaut.Json
 foreign import numberCoreFn :: Argonaut.Json
 foreign import objectCoreFn :: Argonaut.Json
 foreign import partialCoreFn :: Argonaut.Json
+foreign import pointCoreFn :: Argonaut.Json
 foreign import recordAccessCoreFn :: Argonaut.Json
 foreign import semigroupCoreFn :: Argonaut.Json
 foreign import stringCoreFn :: Argonaut.Json
 foreign import superClassCoreFn :: Argonaut.Json
+foreign import tupleCoreFn :: Argonaut.Json
 foreign import typeClassCoreFn :: Argonaut.Json
 foreign import unitCoreFn :: Argonaut.Json
 
@@ -186,6 +190,30 @@ main = Main.runTest do
       test "data" dataCoreFn "M" ["_C", "x"]
         [ "_C = (\\ value0 -> (value0))"
         , "x = (M._C 0)"
+        ]
+
+      test "tuple" tupleCoreFn "M" ["_Tuple", "tuple"]
+        [ "_Tuple = (\\ value0 value1 -> (value0, value1))"
+        , "tuple = (\\ x -> (\\ y -> ((M._Tuple x) y)))"
+        ]
+
+      test "maybe" maybeCoreFn "M" ["_Nothing", "_Just", "just"]
+        [ "_Nothing = ()"
+        , "_Just = (\\ value0 -> (value0))"
+        , "just = (\\ x -> (M._Just x))"
+        ]
+
+      test "point" pointCoreFn "M" ["_Point", "p1", "p2", "p3"]
+        [ "_Point = (\\ value0 -> (value0))"
+        , "p3 = (\\ r -> (M._Point (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) Bookkeeper.=: (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) r) Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) Bookkeeper.=: (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) r))))"
+        , "p2 = (\\ r -> (M._Point r))"
+        , "p1 = (\\ x -> (\\ y -> (M._Point (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) Bookkeeper.=: y Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) Bookkeeper.=: x))))"
+        ]
+
+      test "list" listCoreFn "M" ["_Nil", "_Cons", "numbers"]
+        [ "_Nil = ()"
+        , "_Cons = (\\ value0 value1 -> (value0, value1))"
+        , "numbers = ((M._Cons 1) ((M._Cons 2) M._Nil))"
         ]
 
 test :: forall e. String -> Argonaut.Json -> String -> Array String -> Array String -> Test.TestSuite e
