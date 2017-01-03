@@ -37,14 +37,17 @@ So far, Thran supports (see [the reference section](#reference) or [the example 
 
 Currently Thran does not support (see [the to do section](#to-do)):
 
+- Array binders like `f [x] = x`
+- Record binders like `f { x } = x`
+- Constructor binders like `f (Just x) = x`
+- Guard clauses like `f x | true = x`
 - Module imports
 - Foreign imports
-- Guard clauses
 
 Thran has a few limitations based on the corefn:
 
 - Type information isn't available, so everything has to be inferred
-- Type classes, newtypes, and data types are compiled into dictionaries and functions
+- Type classes, newtypes, and data types are compiled into records and functions
 
 Thran is a proof of concept at this point.
 Don't use it for anything serious.
