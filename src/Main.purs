@@ -19,7 +19,7 @@ import Thran as Thran
 
 main :: Eff.Eff
   ( console :: CONSOLE
-  , err :: EXCEPTION
+  , exception :: EXCEPTION
   , fs :: FS
   , process :: PROCESS
   ) Unit

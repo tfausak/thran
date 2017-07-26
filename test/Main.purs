@@ -205,9 +205,9 @@ main = Main.runTest do
 
       test "point" pointCoreFn "M" ["_Point", "p1", "p2", "p3"]
         [ "_Point = (\\ value0 -> (value0))"
-        , "p3 = (\\ r -> (M._Point (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) Bookkeeper.=: (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) r) Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) Bookkeeper.=: (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) r))))"
+        , "p3 = (\\ r -> (M._Point (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) Bookkeeper.=: (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) r) Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) Bookkeeper.=: (Bookkeeper.get (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) r))))"
         , "p2 = (\\ r -> (M._Point r))"
-        , "p1 = (\\ x -> (\\ y -> (M._Point (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) Bookkeeper.=: y Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) Bookkeeper.=: x))))"
+        , "p1 = (\\ x -> (\\ y -> (M._Point (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"x\")) Bookkeeper.=: x Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# \"y\")) Bookkeeper.=: y))))"
         ]
 
       test "list" listCoreFn "M" ["_Nil", "_Cons", "numbers"]
@@ -228,7 +228,7 @@ formatModule name exports declarations = do
   let formattedExports = formatExports exports
   let formattedDeclarations = formatDeclarations declarations
   let rawModule = String.joinWith ""
-        [ """-- stack --resolver lts-7 exec ghci --package bookkeeper-0.2.4 --package type-level-sets-0.8.0.0
+        [ """-- stack --resolver lts-8.23 exec ghci --package bookkeeper-0.2.4 --package type-level-sets-0.8.0.0
 -- Built with psc version 0.10.3.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}

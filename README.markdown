@@ -5,12 +5,14 @@ It is written in PureScript.
 
 [![Thran Golem](https://i.imgur.com/iwbcQjm.jpg)](http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=423539)
 
-To use Thran, first compile a PureScript module with `psc --dump-corefn`.
+To use Thran, first compile a PureScript module with `--dump-corefn`.
 Then convert the corefn into Haskell.
 
 ``` shell
-$ psc --dump-corefn path-to/Example.purs
-$ npm run thran path-to/Example/corefn.json > path-to/Example.hs
+$ yarn install
+$ yarn run purs -- compile --dump-corefn Example.purs
+$ yarn run --silent thran output/Example/corefn.json > Example.hs
+$ stack Example.hs
 ```
 
 The compiled Haskell can be run with [Stack](https://docs.haskellstack.org/en/stable/README/).
@@ -31,9 +33,11 @@ So far, Thran supports (see [the reference section](#reference) or [the example 
 - Record field access
 - Newtypes
 - Defining type classes, including super classes
+  - The implementation of this on the Haskell side of things is gross and requires the `AllowAmbiguousTypes` extension. See <https://github.com/tfausak/thran/issues/1>.
 - Partial functions
 - Mutually recursive declarations
 - Data constructors
+  - The implementation of this in Haskell is currently broken when a single type has multiple constructors with different numbers of arguments. See <https://github.com/tfausak/thran/issues/2>.
 
 Currently Thran does not support (see [the to do section](#to-do)):
 
@@ -51,6 +55,7 @@ Thran has a few limitations based on the corefn:
 
 Thran is a proof of concept at this point.
 Don't use it for anything serious.
+If you want to work with PureScript's corefn in PureScript, consider using <https://github.com/paulyoung/purescript-corefn>.
 
 ## Reference
 
@@ -79,7 +84,7 @@ type class | `class C a where f :: a` | `_C = (\ f -> (emptyBook & #f =: f))`
 superclass | `class C <= S` | `_S = (\ x -> (emptyBook & #superclass =: x))`
 named match | `\ (x@_) -> x` | `(\ v -> (case (v) of { (x@_) -> x }))`
 unit | `data UnitT = UnitC` | `_UnitC = ()`
-adt | `data T = A | B` | `_A = (); _B = ()`
+adt | <code>data T = A &#x7c; B</code> | `_A = (); _B = ()`
 data | `data Tuple a b = Tuple a b` | `_Tuple = (\ x y -> (x, y))`
 
 ## Records
@@ -238,14 +243,19 @@ triple :: forall a. Semigroup a => a -> a
 triple x = x + x + x
 
 -- partial function
+partial :: Partial => Int -> Int
 partial 0 = 0
 
 -- named pattern
+named :: forall a. a -> a
 named x = case x of
   y@_ -> y
 
 -- mutually recursive declarations
+mutualA :: forall a b. a -> b
 mutualA x = mutualB x
+
+mutualB :: forall a b. a -> b
 mutualB x = mutualA x
 
 -- data without constructors are not present in corefn
@@ -302,6 +312,7 @@ numbers = 1 : 2 : Nil
 -- negative numbers
 negativeOne :: Int
 negativeOne = -1
+
 -- dummy `negate` definition to avoid pulling in the prelude
 negate :: forall a. a -> a
 negate x = x
@@ -314,16 +325,21 @@ perform effect query = do
   effect
   _ <- query
   result
+
 -- dummy `bind` definition to avoid pulling in the prelude
 bind :: forall a b. a -> (a -> b) -> b
 bind x f = f x
+
+-- dummy `discard` definition to avoid pulling in the prelude
+discard :: forall a b. a -> (a -> b) -> b
+discard = bind
 ```
 
 Thran generates this Haskell module:
 
 ``` haskell
--- stack --resolver lts-7 exec ghci --package bookkeeper-0.2.4 --package type-level-sets-0.8.0.0
--- Built with psc version 0.10.3.
+-- stack --resolver lts-8.23 exec ghci --package bookkeeper-0.2.4 --package type-level-sets-0.8.0.0
+-- Built with psc version 0.11.6.
 
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
@@ -354,6 +370,7 @@ module Example (
   boolean,
   character,
   constant,
+  discard,
   empty,
   getName,
   identity,
@@ -414,7 +431,7 @@ _Right = (\ value0 -> (value0))
 
 _Semigroup = (\ append -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "append")) Bookkeeper.=: append))
 
-_Monoid = (\ __superclass_Example__Semigroup_0 -> (\ empty -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "empty")) Bookkeeper.=: empty Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "__superclass_Example.Semigroup_0")) Bookkeeper.=: __superclass_Example__Semigroup_0)))
+_Monoid = (\ _Semigroup0 -> (\ empty -> (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "empty")) Bookkeeper.=: empty Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "Semigroup0")) Bookkeeper.=: _Semigroup0)))
 
 unit = Example._UnitC
 
@@ -436,7 +453,7 @@ numbers = ((Example._Cons 1) ((Example._Cons 2) Example._Nil))
 
 number = 1.2
 
-not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (Prelude.False) -> Prelude.True }))
+not = (\ x -> (case (x) of { (Prelude.True) -> Prelude.False; (_) -> Prelude.True }))
 
 nonEmpty = (Bookkeeper.emptyBook Bookkeeper.& (GHC.OverloadedLabels.fromLabel (GHC.Prim.proxy# :: GHC.Prim.Proxy# "name")) Bookkeeper.=: "thran")
 
@@ -474,7 +491,9 @@ boolean = Prelude.True
 
 bind = (\ x -> (\ f -> (f x)))
 
-perform = (\ effect -> (\ query -> ((Example.bind effect) (\ __unused -> ((Example.bind query) (\ v -> (case (v) of { (result) -> ((Example.bind effect) (\ __unused -> ((Example.bind query) (\ v1 -> (case (v1) of { (_) -> result }))))) })))))))
+discard = Example.bind
+
+perform = (\ effect -> (\ query -> ((Example.discard effect) (\ __unused -> ((Example.bind query) (\ v -> (case (v) of { (result) -> ((Example.discard effect) (\ __unused -> ((Example.bind query) (\ v1 -> result)))) })))))))
 
 array = [1, 2, 3]
 
