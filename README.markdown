@@ -1,3 +1,5 @@
+:warning: Thran was an experiment to learn about PureScript's core functional representation ("corefn") and compile it into Haskell. Because Haskell is statically typed but PureScript's corefn isn't, the compilation is harder than it should be. If you're interested in compiling PureScript into Haskell, I ([@tfausak](https://github.com/tfausak)) would recommend hacking on [the PureScript package](https://hackage.haskell.org/package/purescript) instead. In particular, writing a function to translate `Language.PureScript.AST.Declarations.Module` into `Language.Haskell.Exts.Syntax.Module` would be a good start.
+
 # Thran
 
 Thran compiles PureScript into Haskell.
